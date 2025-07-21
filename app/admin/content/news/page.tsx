@@ -1,21 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { BannerDisplay } from "@/components/banner-display"
-import { ContentEditor } from "@/components/content-editor"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, EyeOff, Send, Archive } from "lucide-react"
+import { useState, useEffect } from "react";
+import { BannerDisplay } from "@/components/banner-display";
+import { ContentEditor } from "@/components/content-editor";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Send,
+  Archive,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -23,104 +38,127 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-
-interface Post {
-  id: string
-  title: string
-  author: string
-  status: "draft" | "published" | "hidden"
-  views: number
-  category: string
-  createdAt: string
-}
-
-const mockNewsPosts: Post[] = [
-  {
-    id: "1",
-    title: "Latest Gaming Industry Trends",
-    author: "John Admin",
-    status: "published",
-    views: 1234,
-    category: "Gaming",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "E3 2024: What to Expect",
-    author: "Jane Admin",
-    status: "draft",
-    views: 0,
-    category: "Events",
-    createdAt: "2024-01-14",
-  },
-  {
-    id: "3",
-    title: "New Indie Game Spotlight",
-    author: "Mike Admin",
-    status: "hidden",
-    views: 856,
-    category: "Reviews",
-    createdAt: "2024-01-13",
-  },
-]
+} from "@/components/ui/table";
+import { getPosts, deletePost, updatePostStatus } from "@/lib/actions";
+import type { Post } from "@/lib/prisma";
 
 export default function NewsPage() {
-  const [posts, setPosts] = useState<Post[]>(mockNewsPosts)
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingPost, setEditingPost] = useState<Post | null>(null)
-  const [selectedPosts, setSelectedPosts] = useState<string[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const data = await getPosts();
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || post.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+    const matchesSearch = post.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || post.status === statusFilter.toUpperCase();
+    return matchesSearch && matchesStatus;
+  });
 
   const handleEdit = (post: Post) => {
-    setEditingPost(post)
-    setShowEditor(true)
-  }
+    setEditingPost(post);
+    setShowEditor(true);
+  };
 
   const handleView = (post: Post) => {
-    alert(`Viewing: ${post.title}\nAuthor: ${post.author}\nStatus: ${post.status}`)
-  }
-
-  const handleStatusChange = (postId: string, newStatus: Post["status"]) => {
-    setPosts(prev => prev.map(post => 
-      post.id === postId ? { ...post, status: newStatus } : post
-    ))
-  }
-
-  const handleDelete = (postId: string) => {
-    if (confirm("Are you sure you want to delete this article?")) {
-      setPosts(prev => prev.filter(post => post.id !== postId))
+    if (post.slug) {
+      window.open(`/news/${post.slug}`, "_blank");
+    } else {
+      alert(
+        `Viewing: ${post.title}\nAuthor: ${post.author}\nStatus: ${post.status}`
+      );
     }
-  }
+  };
+
+  const handleStatusChange = async (
+    postId: string,
+    newStatus: "DRAFT" | "PUBLISHED" | "HIDDEN"
+  ) => {
+    try {
+      await updatePostStatus(postId, newStatus);
+      await fetchPosts(); // Refresh the list
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Error updating post status");
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (confirm("Are you sure you want to delete this article?")) {
+      try {
+        await deletePost(postId);
+        await fetchPosts(); // Refresh the list
+      } catch (error) {
+        console.error("Error deleting post:", error);
+        alert("Error deleting post");
+      }
+    }
+  };
 
   const handleSave = () => {
-    setShowEditor(false)
-    setEditingPost(null)
-  }
+    setShowEditor(false);
+    setEditingPost(null);
+    fetchPosts(); // Refresh the list
+  };
 
   if (showEditor) {
     return (
       <ContentEditor
         type={editingPost ? "Edit News Article" : "New News Article"}
         initialTitle={editingPost?.title}
-        initialContent={editingPost ? `<h1>${editingPost.title}</h1><p>Edit your news article content here...</p>` : ""}
+        initialContent={editingPost?.content}
+        initialExcerpt={editingPost?.excerpt}
+        initialCategory={editingPost?.category}
+        initialStatus={editingPost?.status}
+        editingPost={editingPost}
         onSave={handleSave}
         onPublish={handleSave}
       />
-    )
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-48 mb-4"></div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-12 bg-muted rounded"></div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <BannerDisplay page="news" position="top" />
-      
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">News Articles</h1>
@@ -135,7 +173,7 @@ export default function NewsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>All Articles</CardTitle>
+            <CardTitle>All Articles ({filteredPosts.length})</CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -179,18 +217,23 @@ export default function NewsPage() {
                   <TableCell className="font-medium">{post.title}</TableCell>
                   <TableCell>{post.author}</TableCell>
                   <TableCell>
-                    <Badge 
+                    <Badge
                       variant={
-                        post.status === "published" ? "default" : 
-                        post.status === "hidden" ? "destructive" : "secondary"
+                        post.status === "PUBLISHED"
+                          ? "default"
+                          : post.status === "HIDDEN"
+                            ? "destructive"
+                            : "secondary"
                       }
                     >
-                      {post.status}
+                      {post.status.toLowerCase()}
                     </Badge>
                   </TableCell>
                   <TableCell>{post.category}</TableCell>
                   <TableCell>{post.views.toLocaleString()}</TableCell>
-                  <TableCell>{post.createdAt}</TableCell>
+                  <TableCell>
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -207,19 +250,27 @@ export default function NewsPage() {
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(post.id, "published")}>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusChange(post.id, "PUBLISHED")
+                          }
+                        >
                           <Send className="h-4 w-4 mr-2" />
                           Publish
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(post.id, "draft")}>
+                        <DropdownMenuItem
+                          onClick={() => handleStatusChange(post.id, "DRAFT")}
+                        >
                           <Archive className="h-4 w-4 mr-2" />
                           Draft
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(post.id, "hidden")}>
+                        <DropdownMenuItem
+                          onClick={() => handleStatusChange(post.id, "HIDDEN")}
+                        >
                           <EyeOff className="h-4 w-4 mr-2" />
                           Hide
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => handleDelete(post.id)}
                         >
@@ -233,10 +284,16 @@ export default function NewsPage() {
               ))}
             </TableBody>
           </Table>
+          {filteredPosts.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              No articles found.{" "}
+              {searchTerm && "Try adjusting your search terms."}
+            </div>
+          )}
         </CardContent>
       </Card>
-      
+
       <BannerDisplay page="news" position="bottom" />
     </div>
-  )
+  );
 }

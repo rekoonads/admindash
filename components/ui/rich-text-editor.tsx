@@ -1,289 +1,148 @@
-"use client"
+"use client";
 
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { TextStyle } from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
-import { Highlight } from '@tiptap/extension-highlight'
-import { Underline } from '@tiptap/extension-underline'
-import { TextAlign } from '@tiptap/extension-text-align'
-import { Subscript } from '@tiptap/extension-subscript'
-import { Superscript } from '@tiptap/extension-superscript'
-import { Image } from '@tiptap/extension-image'
-import { Link } from '@tiptap/extension-link'
-import { TaskList } from '@tiptap/extension-task-list'
-import { TaskItem } from '@tiptap/extension-task-item'
-import { Button } from './button'
-import { Separator } from './separator'
-import { 
-  Bold, 
-  Italic, 
-  Underline as UnderlineIcon, 
-  Strikethrough, 
-  Code, 
-  Highlighter,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Bold,
+  Italic,
   List,
   ListOrdered,
-  Quote,
-  Undo,
-  Redo,
-  Link as LinkIcon,
-  Image as ImageIcon,
-  Table as TableIcon,
-  CheckSquare,
-  Subscript as SubscriptIcon,
-  Superscript as SuperscriptIcon
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+  Link,
+  ImageIcon,
+  Eye,
+  Code,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
-  content?: string
-  onChange?: (content: string) => void
-  placeholder?: string
-  className?: string
+  content: string;
+  onChange: (content: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-export function RichTextEditor({ 
-  content = '', 
-  onChange, 
-  placeholder = 'Start typing...',
-  className 
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder,
+  className,
 }: RichTextEditorProps) {
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder,
-      }),
-      TextStyle,
-      Color,
-      Highlight,
-      Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Subscript,
-      Superscript,
-      Image,
-      Link.configure({
-        openOnClick: false,
-      }),
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-    ],
-    content,
-    onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML())
+  const [showPreview, setShowPreview] = useState(false);
+
+  const insertTag = (openTag: string, closeTag = "") => {
+    const textarea = document.getElementById(
+      "rich-editor"
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    const newContent =
+      content.substring(0, start) +
+      openTag +
+      selectedText +
+      closeTag +
+      content.substring(end);
+
+    onChange(newContent);
+
+    // Restore cursor position
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + openTag.length,
+        start + openTag.length + selectedText.length
+      );
+    }, 0);
+  };
+
+  const toolbarButtons = [
+    {
+      icon: Bold,
+      label: "Bold",
+      action: () => insertTag("<strong>", "</strong>"),
     },
-  })
-
-  if (!editor) {
-    return null
-  }
-
-  const addImage = () => {
-    const url = window.prompt('Enter image URL:')
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run()
-    }
-  }
-
-  const addLink = () => {
-    const url = window.prompt('Enter URL:')
-    if (url) {
-      editor.chain().focus().setLink({ href: url }).run()
-    }
-  }
-
-
+    { icon: Italic, label: "Italic", action: () => insertTag("<em>", "</em>") },
+    {
+      icon: List,
+      label: "Bullet List",
+      action: () => insertTag("<ul>\n<li>", "</li>\n</ul>"),
+    },
+    {
+      icon: ListOrdered,
+      label: "Numbered List",
+      action: () => insertTag("<ol>\n<li>", "</li>\n</ol>"),
+    },
+    {
+      icon: Link,
+      label: "Link",
+      action: () => insertTag('<a href="URL">', "</a>"),
+    },
+    {
+      icon: ImageIcon,
+      label: "Image",
+      action: () => insertTag('<img src="URL" alt="Description" />'),
+    },
+    { icon: Code, label: "Code", action: () => insertTag("<code>", "</code>") },
+  ];
 
   return (
-    <div className={cn("border rounded-lg", className)}>
-      {/* Toolbar */}
-      <div className="border-b p-2 flex flex-wrap gap-1">
-        {/* Text Formatting */}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between border-b pb-2">
+        <div className="flex items-center gap-1">
+          {toolbarButtons.map((button, index) => (
+            <Button
+              key={index}
+              variant="ghost"
+              size="sm"
+              onClick={button.action}
+              title={button.label}
+              className="h-8 w-8 p-0"
+            >
+              <button.icon className="h-4 w-4" />
+            </Button>
+          ))}
+        </div>
         <Button
-          variant={editor.isActive('bold') ? 'default' : 'ghost'}
+          variant="outline"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={() => setShowPreview(!showPreview)}
+          className="flex items-center gap-2"
         >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('italic') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('underline') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-        >
-          <UnderlineIcon className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('strike') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-        >
-          <Strikethrough className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('code') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleCode().run()}
-        >
-          <Code className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('highlight') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-        >
-          <Highlighter className="h-4 w-4" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Sub/Superscript */}
-        <Button
-          variant={editor.isActive('subscript') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleSubscript().run()}
-        >
-          <SubscriptIcon className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('superscript') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleSuperscript().run()}
-        >
-          <SuperscriptIcon className="h-4 w-4" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Alignment */}
-        <Button
-          variant={editor.isActive({ textAlign: 'left' }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-        >
-          <AlignLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive({ textAlign: 'center' }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-        >
-          <AlignCenter className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive({ textAlign: 'right' }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-        >
-          <AlignRight className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive({ textAlign: 'justify' }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-        >
-          <AlignJustify className="h-4 w-4" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Lists */}
-        <Button
-          variant={editor.isActive('bulletList') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('orderedList') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={editor.isActive('taskList') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleTaskList().run()}
-        >
-          <CheckSquare className="h-4 w-4" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Quote */}
-        <Button
-          variant={editor.isActive('blockquote') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        >
-          <Quote className="h-4 w-4" />
-        </Button>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Media */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={addImage}
-        >
-          <ImageIcon className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={addLink}
-        >
-          <LinkIcon className="h-4 w-4" />
-        </Button>
-
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Undo/Redo */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-        >
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-        >
-          <Redo className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
+          {showPreview ? "Edit" : "Preview"}
         </Button>
       </div>
 
-      {/* Editor */}
-      <EditorContent 
-        editor={editor} 
-        className="prose prose-sm max-w-none p-4 min-h-[200px] focus:outline-none"
-      />
+      {showPreview ? (
+        <Card>
+          <CardContent className="p-4">
+            <div
+              className="prose prose-sm max-w-none dark:prose-invert min-h-[200px]"
+              dangerouslySetInnerHTML={{
+                __html: content || "<p>Nothing to preview yet...</p>",
+              }}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <Textarea
+          id="rich-editor"
+          value={content}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={cn("font-mono text-sm resize-none", className)}
+        />
+      )}
+
+      <div className="text-xs text-muted-foreground">
+        Use HTML tags for formatting: {"<h2>"}, {"<p>"}, {"<strong>"}, {"<em>"},{" "}
+        {"<ul>"}, {"<li>"}, etc.
+      </div>
     </div>
-  )
+  );
 }

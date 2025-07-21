@@ -1,53 +1,219 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
-import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Save, Eye, Send, Calendar as CalendarIcon, Clock } from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ArrowLeft, Save, Send, Eye, CalendarIcon, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { createPost, updatePost } from "@/lib/actions";
+import type { Post } from "@/lib/prisma";
 
 interface ContentEditorProps {
-  type: string
-  initialTitle?: string
-  initialContent?: string
-  onSave?: () => void
-  onPreview?: () => void
-  onPublish?: () => void
+  type: string;
+  initialTitle?: string;
+  initialContent?: string;
+  initialExcerpt?: string;
+  initialCategory?: string;
+  initialStatus?: "DRAFT" | "PUBLISHED" | "HIDDEN";
+  editingPost?: Post | null;
+  onSave: () => void;
+  onPublish: () => void;
 }
 
-export function ContentEditor({ type, initialTitle = "", initialContent = "", onSave, onPreview, onPublish }: ContentEditorProps) {
-  const [status, setStatus] = useState("draft")
-  const [content, setContent] = useState(initialContent)
-  const [scheduleDate, setScheduleDate] = useState<Date>()
-  const [scheduleTime, setScheduleTime] = useState("09:00")
+export function ContentEditor({
+  type,
+  initialTitle = "",
+  initialContent = "",
+  initialExcerpt = "",
+  initialCategory = "news",
+  initialStatus = "DRAFT",
+  editingPost,
+  onSave,
+  onPublish,
+}: ContentEditorProps) {
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
+  const [excerpt, setExcerpt] = useState(initialExcerpt);
+  const [category, setCategory] = useState(initialCategory);
+  const [status, setStatus] = useState<
+    "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
+  >(initialStatus as any);
+  const [tags, setTags] = useState("");
+  const [author] = useState("Admin User");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [scheduleTime, setScheduleTime] = useState("09:00");
+
+  useEffect(() => {
+    if (editingPost) {
+      setTitle(editingPost.title);
+      setContent(editingPost.content);
+      setExcerpt(editingPost.excerpt || "");
+      setCategory(editingPost.category);
+      setStatus(editingPost.status as any);
+      setTags(editingPost.tags.join(", "));
+    }
+  }, [editingPost]);
+
+  const handleSave = async (saveStatus: "DRAFT" | "PUBLISHED" | "HIDDEN") => {
+    if (!title.trim() || !content.trim()) {
+      alert("Title and content are required");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("content", content);
+      formData.append("excerpt", excerpt.trim());
+      formData.append("author", author);
+      formData.append("category", category);
+      formData.append("status", saveStatus);
+      formData.append("tags", tags);
+
+      if (editingPost) {
+        await updatePost(editingPost.id, formData);
+      } else {
+        await createPost(formData);
+      }
+
+      if (saveStatus === "PUBLISHED") {
+        onPublish();
+      } else {
+        onSave();
+      }
+    } catch (error) {
+      console.error("Error saving post:", error);
+      alert(
+        `Error saving post: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const categories = [
+    "news",
+    "reviews",
+    "videos",
+    "game-guides",
+    "anime-corner",
+    "tech-zone",
+    "comics-hub",
+  ];
+
+  if (showPreview) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => setShowPreview(false)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Editor
+          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleSave("DRAFT")}
+              disabled={isLoading}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Draft
+            </Button>
+            <Button
+              onClick={() => handleSave("PUBLISHED")}
+              disabled={isLoading}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Publish
+            </Button>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Preview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <article className="prose prose-gray max-w-none dark:prose-invert">
+              <h1>{title}</h1>
+              {excerpt && (
+                <p className="text-lg text-muted-foreground">{excerpt}</p>
+              )}
+              <div
+                className="prose prose-gray max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-a:text-primary hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:ml-4 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-code:bg-muted prose-code:px-1 prose-code:rounded"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            </article>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Create {type}</h1>
-          <p className="text-muted-foreground">Write and publish your {type.toLowerCase()}</p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={onSave}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">
+              {editingPost ? `Edit ${type}` : `Create ${type}`}
+            </h1>
+            <p className="text-muted-foreground">
+              Write and publish your {type.toLowerCase()}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onPreview}>
+          <Button
+            variant="outline"
+            onClick={() => setShowPreview(true)}
+            disabled={!title || !content}
+          >
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
-          <Button variant="outline" onClick={onSave}>
+          <Button
+            variant="outline"
+            onClick={() => handleSave("DRAFT")}
+            disabled={isLoading || !title || !content}
+          >
             <Save className="h-4 w-4 mr-2" />
-            Save Draft
+            {isLoading ? "Saving..." : "Save Draft"}
           </Button>
-          <Button onClick={onPublish}>
+          <Button
+            onClick={() => handleSave("PUBLISHED")}
+            disabled={isLoading || !title || !content}
+          >
             <Send className="h-4 w-4 mr-2" />
-            {status === "scheduled" ? "Schedule" : "Publish"}
+            {isLoading
+              ? "Publishing..."
+              : status === "SCHEDULED"
+                ? "Schedule"
+                : "Publish"}
           </Button>
         </div>
       </div>
@@ -55,12 +221,28 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" placeholder={`Enter ${type.toLowerCase()} title`} defaultValue={initialTitle} />
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              placeholder={`Enter ${type.toLowerCase()} title`}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="excerpt">Excerpt</Label>
+            <Input
+              id="excerpt"
+              placeholder="Brief description of the article..."
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content">Content *</Label>
             <RichTextEditor
               content={content}
               onChange={setContent}
@@ -77,22 +259,30 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge variant={status === "published" ? "default" : "secondary"}>
-                  {status}
+                <Badge
+                  variant={status === "PUBLISHED" ? "default" : "secondary"}
+                >
+                  {status.toLowerCase()}
                 </Badge>
               </div>
-              <Select value={status} onValueChange={setStatus}>
+              <Select
+                value={status}
+                onValueChange={(
+                  value: "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
+                ) => setStatus(value)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="PUBLISHED">Published</SelectItem>
+                  <SelectItem value="HIDDEN">Hidden</SelectItem>
+                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                 </SelectContent>
               </Select>
-              
-              {status === "scheduled" && (
+
+              {status === "SCHEDULED" && (
                 <div className="space-y-3 mt-4">
                   <div className="space-y-2">
                     <Label>Schedule Date</Label>
@@ -106,7 +296,9 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
+                          {scheduleDate
+                            ? format(scheduleDate, "PPP")
+                            : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -119,7 +311,7 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Schedule Time</Label>
                     <div className="flex items-center space-x-2">
@@ -132,10 +324,11 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
                       />
                     </div>
                   </div>
-                  
+
                   {scheduleDate && (
                     <div className="text-sm text-muted-foreground p-2 bg-muted rounded">
-                      Will be published on {format(scheduleDate, "PPP")} at {scheduleTime}
+                      Will be published on {format(scheduleDate, "PPP")} at{" "}
+                      {scheduleTime}
                     </div>
                   )}
                 </div>
@@ -150,29 +343,41 @@ export function ContentEditor({ type, initialTitle = "", initialContent = "", on
             <CardContent className="space-y-3">
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="news">News</SelectItem>
-                    <SelectItem value="reviews">Reviews</SelectItem>
-                    <SelectItem value="videos">Videos</SelectItem>
-                    <SelectItem value="game-guides">Game Guides</SelectItem>
-                    <SelectItem value="anime-corner">Anime Corner</SelectItem>
-                    <SelectItem value="tech-zone">Tech Zone</SelectItem>
-                    <SelectItem value="comics-hub">Comics Hub</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat
+                          .split("-")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" ")}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>
-                <Input placeholder="Add tags..." />
+                <Input
+                  placeholder="Add tags (comma separated)..."
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Author</Label>
+                <Input value={author} disabled />
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }
