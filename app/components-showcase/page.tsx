@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Separator } from "@/components/ui/separator"
-
+import { useState } from "react";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,10 +12,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { AspectRatio } from "@/components/ui/aspect-ratio"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Combobox } from "@/components/ui/combobox"
+} from "@/components/ui/alert-dialog";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -23,8 +26,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandShortcut,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -35,75 +37,62 @@ import {
   ContextMenuRadioItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu"
-import { DataTable } from "@/components/ui/data-table"
-import { DatePicker } from "@/components/ui/date-picker"
+} from "@/components/ui/context-menu";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
-  MenubarTrigger,
-} from "@/components/ui/menubar"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Progress } from "@/components/ui/progress"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Slider } from "@/components/ui/slider"
-import { Toaster, toast } from "sonner" // Sonner is a toaster, not a UI component itself
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Toggle } from "@/components/ui/toggle"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Typography } from "@/components/ui/typography"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Calendar } from "@/components/ui/calendar"
-import { CommandIcon } from "lucide-react"
-import type { ColumnDef } from "@tanstack/react-table"
-import React from "react"
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Typography } from "@/components/ui/typography";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Combobox } from "@/components/ui/combobox";
+import { toast } from "sonner";
+import { Settings, User } from "lucide-react";
 
 export default function ComponentsShowcasePage() {
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
-  const [comboboxValue, setComboboxValue] = React.useState("")
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [comboboxValue, setComboboxValue] = useState("");
 
   const comboboxOptions = [
     { value: "next.js", label: "Next.js" },
@@ -111,63 +100,34 @@ export default function ComponentsShowcasePage() {
     { value: "vue", label: "Vue" },
     { value: "angular", label: "Angular" },
     { value: "svelte", label: "Svelte" },
-  ]
+  ];
 
-  type Payment = {
-    id: string
-    amount: number
-    status: "pending" | "processing" | "success" | "failed"
-    email: string
-  }
-
-  const paymentData: Payment[] = [
+  const invoices = [
     {
-      id: "728ed52f",
-      amount: 100,
-      status: "pending",
-      email: "m@example.com",
+      invoice: "INV001",
+      paymentStatus: "Paid",
+      totalAmount: "$250.00",
+      paymentMethod: "Credit Card",
     },
     {
-      id: "489e1d42",
-      amount: 125,
-      status: "processing",
-      email: "example@gmail.com",
+      invoice: "INV002",
+      paymentStatus: "Pending",
+      totalAmount: "$150.00",
+      paymentMethod: "PayPal",
     },
     {
-      id: "a1b2c3d4",
-      amount: 75,
-      status: "success",
-      email: "test@test.com",
+      invoice: "INV003",
+      paymentStatus: "Unpaid",
+      totalAmount: "$350.00",
+      paymentMethod: "Bank Transfer",
     },
-  ]
-
-  const paymentColumns: ColumnDef<Payment>[] = [
-    {
-      accessorKey: "status",
-      header: "Status",
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "amount",
-      header: "Amount",
-      cell: ({ row }) => {
-        const amount = Number.parseFloat(row.getValue("amount"))
-        const formatted = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(amount)
-
-        return <div className="text-right font-medium">{formatted}</div>
-      },
-    },
-  ]
+  ];
 
   return (
     <div className="container mx-auto py-8">
-      <Typography.h1 className="mb-8">All Shadcn/ui Components</Typography.h1>
+      <Typography.h1 className="mb-8">
+        Shadcn/ui Components Showcase
+      </Typography.h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Alert Dialog */}
@@ -184,8 +144,8 @@ export default function ComponentsShowcasePage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your account and remove your data from
-                    our servers.
+                    This action cannot be undone. This will permanently delete
+                    your account.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -204,34 +164,72 @@ export default function ComponentsShowcasePage() {
           </CardHeader>
           <CardContent>
             <AspectRatio ratio={16 / 9} className="bg-muted">
-              <img src="/placeholder.svg?height=200&width=350" alt="Placeholder" className="rounded-md object-cover" />
+              <img
+                src="/placeholder.svg?height=200&width=350"
+                alt="Placeholder"
+                className="rounded-md object-cover w-full h-full"
+              />
             </AspectRatio>
           </CardContent>
         </Card>
 
-        {/* Carousel */}
+        {/* Badge */}
         <Card>
           <CardHeader>
-            <CardTitle>Carousel</CardTitle>
+            <CardTitle>Badge</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Badge>Default</Badge>
+            <Badge variant="secondary">Secondary</Badge>
+            <Badge variant="destructive">Destructive</Badge>
+            <Badge variant="outline">Outline</Badge>
+          </CardContent>
+        </Card>
+
+        {/* Button */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Button</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button>Default</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="destructive">Destructive</Button>
+            <Button variant="outline">Outline</Button>
+            <Button variant="ghost">Ghost</Button>
+            <Button variant="link">Link</Button>
+          </CardContent>
+        </Card>
+
+        {/* Calendar */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Calendar</CardTitle>
           </CardHeader>
           <CardContent>
-            <Carousel className="w-full max-w-xs mx-auto">
-              <CarouselContent>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex aspect-square items-center justify-center p-6">
-                          <span className="text-4xl font-semibold">{index + 1}</span>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="rounded-md border"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Checkbox */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Checkbox</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="terms" />
+              <Label htmlFor="terms">Accept terms and conditions</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="marketing" />
+              <Label htmlFor="marketing">Send me marketing emails</Label>
+            </div>
           </CardContent>
         </Card>
 
@@ -262,14 +260,12 @@ export default function ComponentsShowcasePage() {
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup heading="Suggestions">
                   <CommandItem>
-                    <CommandIcon className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
-                    <CommandShortcut>⌘P</CommandShortcut>
                   </CommandItem>
                   <CommandItem>
-                    <CommandIcon className="mr-2 h-4 w-4" />
+                    <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
-                    <CommandShortcut>⌘S</CommandShortcut>
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -284,55 +280,39 @@ export default function ComponentsShowcasePage() {
           </CardHeader>
           <CardContent>
             <ContextMenu>
-              <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+              <ContextMenuTrigger className="flex h-[150px] w-full items-center justify-center rounded-md border border-dashed text-sm">
                 Right click here
               </ContextMenuTrigger>
               <ContextMenuContent className="w-64">
-                <ContextMenuItem inset>
+                <ContextMenuItem>
                   Back
                   <ContextMenuShortcut>⌘[</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset disabled>
+                <ContextMenuItem disabled>
                   Forward
                   <ContextMenuShortcut>⌘]</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem inset>
+                <ContextMenuItem>
                   Reload
                   <ContextMenuShortcut>⌘R</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuSub>
-                  <ContextMenuSubTrigger inset>More Tools</ContextMenuSubTrigger>
-                  <ContextMenuSubContent className="w-48">
-                    <ContextMenuItem>Save Page As...</ContextMenuItem>
-                    <ContextMenuItem>Create Shortcut...</ContextMenuItem>
-                    <ContextMenuItem>Name Window...</ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem>Developer Tools</ContextMenuItem>
-                  </ContextMenuSubContent>
-                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuCheckboxItem checked>
                   Show Bookmarks Bar
-                  <ContextMenuShortcut>⌘⇧B</ContextMenuShortcut>
                 </ContextMenuCheckboxItem>
+                <ContextMenuSeparator />
                 <ContextMenuRadioGroup value="pedro">
-                  <ContextMenuLabel inset>People</ContextMenuLabel>
+                  <ContextMenuLabel>People</ContextMenuLabel>
                   <ContextMenuSeparator />
-                  <ContextMenuRadioItem value="pedro">Pedro Duarte</ContextMenuRadioItem>
-                  <ContextMenuRadioItem value="colm">Colm Tuite</ContextMenuRadioItem>
+                  <ContextMenuRadioItem value="pedro">
+                    Pedro Duarte
+                  </ContextMenuRadioItem>
+                  <ContextMenuRadioItem value="colm">
+                    Colm Tuite
+                  </ContextMenuRadioItem>
                 </ContextMenuRadioGroup>
               </ContextMenuContent>
             </ContextMenu>
-          </CardContent>
-        </Card>
-
-        {/* Data Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Table</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataTable columns={paymentColumns} data={paymentData} />
           </CardContent>
         </Card>
 
@@ -346,221 +326,85 @@ export default function ComponentsShowcasePage() {
           </CardContent>
         </Card>
 
-        {/* Drawer */}
+        {/* Dialog */}
         <Card>
           <CardHeader>
-            <CardTitle>Drawer</CardTitle>
+            <CardTitle>Dialog</CardTitle>
           </CardHeader>
           <CardContent>
-            <Drawer>
-              <DrawerTrigger asChild>
-                <Button variant="outline">Open Drawer</Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader>
-                  <DrawerTitle>Are you sure?</DrawerTitle>
-                  <DrawerDescription>This action cannot be undone.</DrawerDescription>
-                </DrawerHeader>
-                <div className="p-4">
-                  <p>This is the content of the drawer.</p>
-                </div>
-                <DrawerFooter>
-                  <Button>Submit</Button>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerFooter>
-              </DrawerContent>
-            </Drawer>
-          </CardContent>
-        </Card>
-
-        {/* Hover Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hover Card</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button variant="link">@nextjs</Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <div className="flex justify-between space-x-4">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-semibold">@nextjs</h4>
-                    <p className="text-sm">The React Framework – created and maintained by Vercel.</p>
-                    <div className="flex items-center pt-2">
-                      <Calendar className="mr-2 h-4 w-4 opacity-70" />{" "}
-                      <span className="text-xs text-muted-foreground">Joined December 2021</span>
-                    </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Edit Profile</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit profile</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your profile here. Click save when you're
+                    done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value="Pedro Duarte"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="username" className="text-right">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      value="@peduarte"
+                      className="col-span-3"
+                    />
                   </div>
                 </div>
-              </HoverCardContent>
-            </HoverCard>
+                <DialogFooter>
+                  <Button type="submit">Save changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 
-        {/* Input OTP */}
+        {/* Dropdown Menu */}
         <Card>
           <CardHeader>
-            <CardTitle>Input OTP</CardTitle>
+            <CardTitle>Dropdown Menu</CardTitle>
           </CardHeader>
           <CardContent>
-            <InputOTP maxLength={6}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Open</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem>Billing</DropdownMenuItem>
+                <DropdownMenuItem>Team</DropdownMenuItem>
+                <DropdownMenuItem>Subscription</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
 
-        {/* Menubar */}
+        {/* Input */}
         <Card>
           <CardHeader>
-            <CardTitle>Menubar</CardTitle>
+            <CardTitle>Input</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Menubar>
-              <MenubarMenu>
-                <MenubarTrigger>File</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem>
-                    New Tab <MenubarShortcut>⌘T</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem>
-                    New Window <MenubarShortcut>⌘N</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem>
-                    Print <MenubarShortcut>⌘P</MenubarShortcut>
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-              <MenubarMenu>
-                <MenubarTrigger>Edit</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem>
-                    Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem>
-                    Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarSub>
-                    <MenubarSubTrigger>Find</MenubarSubTrigger>
-                    <MenubarSubContent>
-                      <MenubarItem>Search the web</MenubarItem>
-                      <MenubarSeparator />
-                      <MenubarItem>Find...</MenubarItem>
-                    </MenubarSubContent>
-                  </MenubarSub>
-                </MenubarContent>
-              </MenubarMenu>
-            </Menubar>
-          </CardContent>
-        </Card>
-
-        {/* Navigation Menu */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Navigation Menu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                      <li className="row-span-3">
-                        <NavigationMenuLink asChild>
-                          <a
-                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                            href="/"
-                          >
-                            <div className="mb-2 mt-4 text-lg font-medium">shadcn/ui</div>
-                            <p className="text-sm leading-tight text-muted-foreground">
-                              Beautifully designed components that you can copy and paste into your apps.
-                            </p>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs">Introduction</NavigationMenuLink>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/installation">Installation</NavigationMenuLink>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/primitives/typography">Typography</NavigationMenuLink>
-                      </NavigationMenuItem>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Components</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/components/accordion">Accordion</NavigationMenuLink>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/components/alert-dialog">Alert Dialog</NavigationMenuLink>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/components/aspect-ratio">Aspect Ratio</NavigationMenuLink>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink href="/docs/components/avatar">Avatar</NavigationMenuLink>
-                      </NavigationMenuItem>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/docs">Documentation</NavigationMenuLink>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </CardContent>
-        </Card>
-
-        {/* Pagination */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pagination</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious href="#" />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">1</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#" isActive>
-                    2
-                  </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">3</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext href="#" />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+          <CardContent className="space-y-2">
+            <Input placeholder="Email" />
+            <Input type="password" placeholder="Password" />
+            <Input disabled placeholder="Disabled" />
           </CardContent>
         </Card>
 
@@ -570,7 +414,7 @@ export default function ComponentsShowcasePage() {
             <CardTitle>Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <Progress value={66} className="w-[60%]" />
+            <Progress value={66} className="w-full" />
           </CardContent>
         </Card>
 
@@ -597,47 +441,46 @@ export default function ComponentsShowcasePage() {
           </CardContent>
         </Card>
 
-        {/* Resizable */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <CardTitle>Resizable</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResizablePanelGroup direction="horizontal" className="min-h-[200px] rounded-lg border">
-              <ResizablePanel defaultSize={25}>
-                <div className="flex h-full items-center justify-center p-6">
-                  <span className="font-semibold">Panel One</span>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={75}>
-                <div className="flex h-full items-center justify-center p-6">
-                  <span className="font-semibold">Panel Two</span>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </CardContent>
-        </Card>
-
         {/* Scroll Area */}
         <Card>
           <CardHeader>
             <CardTitle>Scroll Area</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[200px] w-[350px] rounded-md border p-4">
+            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
               <div className="p-4">
                 <Typography.h4 className="mb-4">Tags</Typography.h4>
                 {Array.from({ length: 50 })
                   .map((_, i, a) => `v0.dev/tag/${a.length - i}`)
                   .map((tag) => (
-                    <React.Fragment key={tag}>
+                    <div key={tag}>
                       <div className="text-sm">{tag}</div>
                       <Separator className="my-2" />
-                    </React.Fragment>
+                    </div>
                   ))}
               </div>
             </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* Select */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Select</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a fruit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="apple">Apple</SelectItem>
+                <SelectItem value="banana">Banana</SelectItem>
+                <SelectItem value="blueberry">Blueberry</SelectItem>
+                <SelectItem value="grapes">Grapes</SelectItem>
+                <SelectItem value="pineapple">Pineapple</SelectItem>
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
@@ -663,14 +506,94 @@ export default function ComponentsShowcasePage() {
             <CardTitle>Slider</CardTitle>
           </CardHeader>
           <CardContent>
-            <Slider defaultValue={[50]} max={100} step={1} className="w-[60%]" />
+            <Slider defaultValue={[50]} max={100} step={1} className="w-full" />
           </CardContent>
         </Card>
 
-        {/* Sonner (Toaster) */}
+        {/* Switch */}
         <Card>
           <CardHeader>
-            <CardTitle>Sonner (Toaster)</CardTitle>
+            <CardTitle>Switch</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Switch id="airplane-mode" />
+              <Label htmlFor="airplane-mode">Airplane Mode</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="notifications" />
+              <Label htmlFor="notifications">Notifications</Label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tabs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="account" className="w-[400px]">
+              <TabsList>
+                <TabsTrigger value="account">Account</TabsTrigger>
+                <TabsTrigger value="password">Password</TabsTrigger>
+              </TabsList>
+              <TabsContent value="account">
+                Make changes to your account here.
+              </TabsContent>
+              <TabsContent value="password">
+                Change your password here.
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Textarea */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Textarea</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea placeholder="Type your message here." />
+          </CardContent>
+        </Card>
+
+        {/* Toggle */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Toggle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Toggle aria-label="Toggle italic">
+              <User className="h-4 w-4" />
+            </Toggle>
+          </CardContent>
+        </Card>
+
+        {/* Toggle Group */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Toggle Group</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ToggleGroup type="multiple">
+              <ToggleGroupItem value="bold" aria-label="Toggle bold">
+                B
+              </ToggleGroupItem>
+              <ToggleGroupItem value="italic" aria-label="Toggle italic">
+                I
+              </ToggleGroupItem>
+              <ToggleGroupItem value="underline" aria-label="Toggle underline">
+                U
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </CardContent>
+        </Card>
+
+        {/* Toast */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Toast</CardTitle>
           </CardHeader>
           <CardContent>
             <Button
@@ -687,54 +610,40 @@ export default function ComponentsShowcasePage() {
             >
               Show Toast
             </Button>
-            <Toaster />
           </CardContent>
         </Card>
 
-        {/* Tabs */}
-        <Card>
+        {/* Table */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Tabs</CardTitle>
+            <CardTitle>Table</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="account" className="w-[400px]">
-              <TabsList>
-                <TabsTrigger value="account">Account</TabsTrigger>
-                <TabsTrigger value="password">Password</TabsTrigger>
-              </TabsList>
-              <TabsContent value="account">Make changes to your account here.</TabsContent>
-              <TabsContent value="password">Change your password here.</TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* Toggle */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Toggle</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Toggle aria-label="Toggle italic">Italic</Toggle>
-          </CardContent>
-        </Card>
-
-        {/* Toggle Group */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Toggle Group</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ToggleGroup type="multiple">
-              <ToggleGroupItem value="bold" aria-label="Toggle bold">
-                Bold
-              </ToggleGroupItem>
-              <ToggleGroupItem value="italic" aria-label="Toggle italic">
-                Italic
-              </ToggleGroupItem>
-              <ToggleGroupItem value="underline" aria-label="Toggle underline">
-                Underline
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <Table>
+              <TableCaption>A list of your recent invoices.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Invoice</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.invoice}>
+                    <TableCell className="font-medium">
+                      {invoice.invoice}
+                    </TableCell>
+                    <TableCell>{invoice.paymentStatus}</TableCell>
+                    <TableCell>{invoice.paymentMethod}</TableCell>
+                    <TableCell className="text-right">
+                      {invoice.totalAmount}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
@@ -743,26 +652,48 @@ export default function ComponentsShowcasePage() {
           <CardHeader>
             <CardTitle>Typography</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Typography.h1>The quick brown fox jumps over the lazy dog.</Typography.h1>
-            <Typography.h2>The quick brown fox jumps over the lazy dog.</Typography.h2>
-            <Typography.h3>The quick brown fox jumps over the lazy dog.</Typography.h3>
-            <Typography.h4>The quick brown fox jumps over the lazy dog.</Typography.h4>
-            <Typography.p>The quick brown fox jumps over the lazy dog.</Typography.p>
-            <Typography.blockquote>"The quick brown fox jumps over the lazy dog."</Typography.blockquote>
+          <CardContent className="space-y-4">
+            <Typography.h1>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.h1>
+            <Typography.h2>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.h2>
+            <Typography.h3>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.h3>
+            <Typography.h4>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.h4>
+            <Typography.p>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.p>
+            <Typography.blockquote>
+              "The quick brown fox jumps over the lazy dog."
+            </Typography.blockquote>
             <Typography.ul>
               <li>First item</li>
               <li>Second item</li>
               <li>Third item</li>
             </Typography.ul>
-            <Typography.inlineCode>console.log("Hello, world!")</Typography.inlineCode>
-            <Typography.lead>The quick brown fox jumps over the lazy dog.</Typography.lead>
-            <Typography.large>The quick brown fox jumps over the lazy dog.</Typography.large>
-            <Typography.small>The quick brown fox jumps over the lazy dog.</Typography.small>
-            <Typography.muted>The quick brown fox jumps over the lazy dog.</Typography.muted>
+            <Typography.inlineCode>
+              console.log("Hello, world!")
+            </Typography.inlineCode>
+            <Typography.lead>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.lead>
+            <Typography.large>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.large>
+            <Typography.small>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.small>
+            <Typography.muted>
+              The quick brown fox jumps over the lazy dog.
+            </Typography.muted>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
