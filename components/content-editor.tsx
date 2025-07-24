@@ -20,11 +20,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ArrowLeft, Save, Send, Eye, CalendarIcon, Clock } from "lucide-react";
+
+import {
+  ArrowLeft,
+  Save,
+  Send,
+  Eye,
+  CalendarIcon,
+  Clock,
+  ImageIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { createPost, updatePost } from "@/lib/actions";
 import type { Post } from "@/lib/prisma";
+import Image from "next/image";
+import { UploadThingImageUpload } from "./uploadthing-image-upload";
 
 interface ContentEditorProps {
   type: string;
@@ -57,6 +68,7 @@ export function ContentEditor({
     "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
   >(initialStatus as any);
   const [tags, setTags] = useState("");
+  const [featuredImage, setFeaturedImage] = useState("");
   const [author] = useState("Admin User");
   const [isLoading, setIsLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -71,6 +83,7 @@ export function ContentEditor({
       setCategory(editingPost.category);
       setStatus(editingPost.status as any);
       setTags(editingPost.tags.join(", "));
+      setFeaturedImage(editingPost.featuredImage || "");
     }
   }, [editingPost]);
 
@@ -90,6 +103,7 @@ export function ContentEditor({
       formData.append("category", category);
       formData.append("status", saveStatus);
       formData.append("tags", tags);
+      formData.append("featuredImage", featuredImage);
 
       if (editingPost) {
         await updatePost(editingPost.id, formData);
@@ -155,6 +169,17 @@ export function ContentEditor({
           </CardHeader>
           <CardContent>
             <article className="prose prose-gray max-w-none dark:prose-invert">
+              {featuredImage && (
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
+                  <Image
+                    src={featuredImage || "/placeholder.svg"}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
+              )}
               <h1>{title}</h1>
               {excerpt && (
                 <p className="text-lg text-muted-foreground">{excerpt}</p>
@@ -253,6 +278,23 @@ export function ContentEditor({
         </div>
 
         <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Featured Image
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UploadThingImageUpload
+                value={featuredImage}
+                onChange={setFeaturedImage}
+                onRemove={() => setFeaturedImage("")}
+                disabled={isLoading}
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Status</CardTitle>

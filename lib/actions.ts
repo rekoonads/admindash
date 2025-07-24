@@ -13,6 +13,7 @@ export async function createPost(formData: FormData) {
     const category = (formData.get("category") as string) || "news";
     const status = (formData.get("status") as string) || "DRAFT";
     const tags = (formData.get("tags") as string) || "";
+    const featuredImage = (formData.get("featuredImage") as string) || "";
 
     // Validate required fields
     if (!title || !content) {
@@ -43,6 +44,7 @@ export async function createPost(formData: FormData) {
       status,
       slug,
       tags: tagsArray,
+      featuredImage,
     });
 
     const post = await prisma.post.create({
@@ -55,6 +57,7 @@ export async function createPost(formData: FormData) {
         status: status as PostStatus,
         slug,
         tags: tagsArray,
+        featuredImage: featuredImage || null,
         views: 0,
       },
     });
@@ -78,6 +81,7 @@ export async function updatePost(id: string, formData: FormData) {
     const category = (formData.get("category") as string) || "news";
     const status = (formData.get("status") as string) || "DRAFT";
     const tags = (formData.get("tags") as string) || "";
+    const featuredImage = (formData.get("featuredImage") as string) || "";
 
     if (!title || !content) {
       throw new Error("Title and content are required");
@@ -106,6 +110,7 @@ export async function updatePost(id: string, formData: FormData) {
         status: status as PostStatus,
         slug,
         tags: tagsArray,
+        featuredImage: featuredImage || null,
       },
     });
 

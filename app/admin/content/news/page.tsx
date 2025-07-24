@@ -24,6 +24,7 @@ import {
   EyeOff,
   Send,
   Archive,
+  RefreshCw,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,6 +50,7 @@ export default function NewsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -56,12 +58,15 @@ export default function NewsPage() {
 
   const fetchPosts = async () => {
     try {
+      setRefreshing(true);
       const data = await getPosts();
       setPosts(data);
+      console.log("Fetched posts:", data.length);
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -73,6 +78,11 @@ export default function NewsPage() {
       statusFilter === "all" || post.status === statusFilter.toUpperCase();
     return matchesSearch && matchesStatus;
   });
+
+  const handleCreateNew = () => {
+    setEditingPost(null);
+    setShowEditor(true);
+  };
 
   const handleEdit = (post: Post) => {
     setEditingPost(post);
@@ -120,25 +130,33 @@ export default function NewsPage() {
     fetchPosts(); // Refresh the list
   };
 
+  const handlePublish = () => {
+    setShowEditor(false);
+    setEditingPost(null);
+    fetchPosts(); // Refresh the list
+  };
+
   if (showEditor) {
     return (
-      <ContentEditor
-        type={editingPost ? "Edit News Article" : "New News Article"}
-        initialTitle={editingPost?.title}
-        initialContent={editingPost?.content}
-        initialExcerpt={editingPost?.excerpt}
-        initialCategory={editingPost?.category}
-        initialStatus={editingPost?.status}
-        editingPost={editingPost}
-        onSave={handleSave}
-        onPublish={handleSave}
-      />
+      <div className="container mx-auto px-4 py-8">
+        <ContentEditor
+          type="News Article"
+          initialTitle={editingPost?.title}
+          initialContent={editingPost?.content}
+          initialExcerpt={editingPost?.excerpt || ""}
+          initialCategory={editingPost?.category}
+          initialStatus={editingPost?.status}
+          editingPost={editingPost}
+          onSave={handleSave}
+          onPublish={handlePublish}
+        />
+      </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="container mx-auto px-4 py-8 space-y-6">
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded w-48 mb-4"></div>
           <Card>
@@ -156,18 +174,28 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <BannerDisplay page="news" position="top" />
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">News Articles</h1>
-          <p className="text-muted-foreground">Manage your news content</p>
+          <p className="text-muted-foreground">
+            Manage your news content ({posts.length} total articles)
+          </p>
         </div>
-        <Button onClick={() => setShowEditor(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Article
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchPosts} disabled={refreshing}>
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+          <Button onClick={handleCreateNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Article
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -199,95 +227,124 @@ export default function NewsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell>{post.author}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        post.status === "PUBLISHED"
-                          ? "default"
-                          : post.status === "HIDDEN"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
-                      {post.status.toLowerCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{post.category}</TableCell>
-                  <TableCell>{post.views.toLocaleString()}</TableCell>
-                  <TableCell>
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(post)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleView(post)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusChange(post.id, "PUBLISHED")
-                          }
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          Publish
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleStatusChange(post.id, "DRAFT")}
-                        >
-                          <Archive className="h-4 w-4 mr-2" />
-                          Draft
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleStatusChange(post.id, "HIDDEN")}
-                        >
-                          <EyeOff className="h-4 w-4 mr-2" />
-                          Hide
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDelete(post.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {filteredPosts.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Views</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {filteredPosts.length === 0 && (
+              </TableHeader>
+              <TableBody>
+                {filteredPosts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium max-w-[300px]">
+                      <div className="truncate" title={post.title}>
+                        {post.title}
+                      </div>
+                    </TableCell>
+                    <TableCell>{post.author}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          post.status === "PUBLISHED"
+                            ? "default"
+                            : post.status === "HIDDEN"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {post.status.toLowerCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{post.category}</TableCell>
+                    <TableCell>{post.views.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(post)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleView(post)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </DropdownMenuItem>
+                          {post.status !== "PUBLISHED" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleStatusChange(post.id, "PUBLISHED")
+                              }
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Publish
+                            </DropdownMenuItem>
+                          )}
+                          {post.status !== "DRAFT" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleStatusChange(post.id, "DRAFT")
+                              }
+                            >
+                              <Archive className="h-4 w-4 mr-2" />
+                              Draft
+                            </DropdownMenuItem>
+                          )}
+                          {post.status !== "HIDDEN" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleStatusChange(post.id, "HIDDEN")
+                              }
+                            >
+                              <EyeOff className="h-4 w-4 mr-2" />
+                              Hide
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => handleDelete(post.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No articles found.{" "}
-              {searchTerm && "Try adjusting your search terms."}
+              {searchTerm || statusFilter !== "all" ? (
+                <div>
+                  <p>No articles found matching your criteria.</p>
+                  <p className="text-sm mt-2">
+                    Try adjusting your search terms or filters.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p>No articles found.</p>
+                  <Button onClick={handleCreateNew} className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Article
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
