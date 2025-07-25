@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { createPost, updatePost } from "@/lib/actions";
 import type { Post } from "@/lib/prisma";
 import Image from "next/image";
-import { UploadThingImageUpload } from "./uploadthing-image-upload";
+import { CloudinaryImageUpload } from "./cloudinary-image-upload";
 
 interface ContentEditorProps {
   type: string;
@@ -286,7 +286,7 @@ export function ContentEditor({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <UploadThingImageUpload
+              <CloudinaryImageUpload
                 value={featuredImage}
                 onChange={setFeaturedImage}
                 onRemove={() => setFeaturedImage("")}
