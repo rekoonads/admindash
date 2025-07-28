@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { getPosts } from "@/lib/actions";
 
+// Add CORS headers to all responses
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  response.headers.set("Access-Control-Max-Age", "86400");
+  return response;
+}
+
 export async function GET() {
   try {
     // Get all published posts
@@ -29,30 +44,25 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: categories,
     });
+    return addCorsHeaders(response);
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: false,
         error: "Failed to fetch categories",
       },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 }
 
-// Enable CORS for cross-origin requests
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  const response = new NextResponse(null, { status: 200 });
+  return addCorsHeaders(response);
 }
