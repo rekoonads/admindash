@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { createPost, updatePost } from "@/lib/actions";
 import type { Post } from "@/lib/prisma";
 import Image from "next/image";
+import { TiptapEditor } from "./tiptap-editor";
 import { CloudinaryImageUpload } from "./cloudinary-image-upload";
 
 interface ContentEditorProps {
@@ -268,11 +269,11 @@ export function ContentEditor({
 
           <div className="space-y-2">
             <Label htmlFor="content">Content *</Label>
-            <RichTextEditor
+            <TiptapEditor
               content={content}
               onChange={setContent}
               placeholder={`Write your ${type.toLowerCase()} content here...`}
-              className="min-h-[400px]"
+              className="min-h-[500px]"
             />
           </div>
         </div>
