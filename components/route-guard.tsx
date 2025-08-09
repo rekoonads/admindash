@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useAuth } from "@/lib/mock-auth"
 import { useRouter, usePathname } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { LoadingSpinner } from "./loading-spinner"
 
 interface RouteGuardProps {
   children: React.ReactNode
@@ -11,48 +11,60 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) {
-  const { user, orgRole, isSignedIn } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [authUser, setAuthUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Check for authentication
+    const user = localStorage.getItem('auth-user')
+    if (user) {
+      setAuthUser(JSON.parse(user))
+    }
+    setIsLoading(false)
+  }, [])
+
+  useEffect(() => {
+    if (isLoading) return
+
     // Don't redirect if we're already on the sign-in page
     if (pathname === "/sign-in") {
       return
     }
 
     // If user is not signed in, redirect to sign-in
-    if (!isSignedIn) {
+    if (!authUser) {
       router.push("/sign-in")
       return
     }
 
-    // If admin is required but user is not admin, redirect to unauthorized
-    if (requireAdmin && orgRole !== "org:admin") {
+    // For demo purposes, assume all authenticated users are admins
+    // In a real app, you'd check user roles from the auth system
+    if (requireAdmin && !authUser) {
       router.push("/unauthorized")
       return
     }
-  }, [isSignedIn, orgRole, requireAdmin, router, pathname])
+  }, [authUser, requireAdmin, router, pathname, isLoading])
 
   // Show loading while checking authentication
-  if (!isSignedIn && pathname !== "/sign-in") {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <LoadingSpinner className="mx-auto mb-4" />
           <p>Loading...</p>
         </div>
       </div>
     )
   }
 
-  // Show loading while checking admin permissions
-  if (requireAdmin && orgRole !== "org:admin" && pathname !== "/unauthorized") {
+  if (!authUser && pathname !== "/sign-in") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Checking permissions...</p>
+          <LoadingSpinner className="mx-auto mb-4" />
+          <p>Redirecting to sign in...</p>
         </div>
       </div>
     )

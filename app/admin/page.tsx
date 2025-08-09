@@ -1,13 +1,15 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, MessageCircle, Eye, TrendingUp, FileText, Clock, Gamepad2, Star, Video, BookOpen, Zap } from "lucide-react"
+import { Users, Eye, TrendingUp, FileText, Clock, Gamepad2, Star, Video, BookOpen, Zap } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { useIsMobile } from "@/components/ui/use-mobile"
 import { useUser } from "@clerk/nextjs"
 
 export default function AdminDashboard() {
+  const isMobile = useIsMobile()
   const { user } = useUser()
 
   const siteOverview = {
@@ -46,9 +48,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'}`}>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
             KOODOS Admin Dashboard
           </h1>
           <p className="text-muted-foreground">Welcome back, {user?.firstName}! Manage your gaming content empire.</p>
@@ -61,7 +63,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Articles</CardTitle>
@@ -113,7 +115,7 @@ export default function AdminDashboard() {
           <CardDescription>Overview of content across different categories</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
             {contentStats.map((stat, index) => {
               const Icon = stat.icon
               return (
@@ -132,7 +134,7 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -170,10 +172,10 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {trendingContent.map((content, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={index} className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'} p-3 border rounded-lg hover:bg-gray-50 transition-colors`}>
                   <div className="flex-1">
                     <h3 className="font-medium">{content.title}</h3>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                    <div className={`flex items-center gap-4 mt-1 text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
                       <Badge variant="secondary" className="text-xs">
                         {content.category}
                       </Badge>
@@ -184,7 +186,7 @@ export default function AdminDashboard() {
                       <span>{content.engagement}% engagement</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className={isMobile ? 'self-start' : ''}>
                     View
                   </Button>
                 </div>
@@ -211,7 +213,7 @@ export default function AdminDashboard() {
                   <p className="font-medium">
                     <span className="text-blue-600">{activity.action}</span> {activity.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                  <div className={`flex items-center gap-2 mt-1 text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
                     <Badge variant="outline" className="text-xs">{activity.type}</Badge>
                     <span>{activity.time}</span>
                   </div>

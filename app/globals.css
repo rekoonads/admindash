@@ -92,3 +92,33 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .sidebar-content {
+    @apply text-sm;
+  }
+  
+  .card {
+    @apply mx-2;
+  }
+  
+  .dashboard-grid {
+    @apply grid-cols-1 gap-3;
+  }
+  
+  .mobile-padding {
+    @apply px-3 py-2;
+  }
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 768px) {
+  button, a {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  input, textarea {
+    @apply text-base; /* Prevents zoom on iOS */
+  }
+}
