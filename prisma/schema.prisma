@@ -18,7 +18,7 @@ model User {
   role       user_role @default(EDITOR)
   is_active  Boolean   @default(true)
   created_at DateTime  @default(now())
-  updated_at DateTime
+  updated_at DateTime  @updatedAt
   comments   Comment[]
   reactions  reactions[]
 
@@ -40,7 +40,7 @@ model Category {
   is_active        Boolean    @default(true)
   sort_order       Int        @default(0)
   created_at       DateTime   @default(now())
-  updated_at       DateTime
+  updated_at       DateTime   @updatedAt
   categories       Category?  @relation("categoriesTocategories", fields: [parent_id], references: [id])
   other_categories Category[] @relation("categoriesTocategories")
 
@@ -73,7 +73,7 @@ model Article {
   read_time        Int?
   published_at     DateTime?
   created_at       DateTime       @default(now())
-  updated_at       DateTime
+  updated_at       DateTime       @updatedAt
   video_url        String?
   cons             String[]       @default([])
   developer        String?
@@ -113,7 +113,7 @@ model Tag {
   color       String?
   usage_count Int      @default(0)
   created_at  DateTime @default(now())
-  updated_at  DateTime
+  updated_at  DateTime @updatedAt
 
   @@index([slug])
   @@index([usage_count(sort: Desc)])
@@ -130,7 +130,7 @@ model Comment {
   article_id     String
   parent_id      String?
   created_at     DateTime  @default(now())
-  updated_at     DateTime
+  updated_at     DateTime  @updatedAt
   likes          Int       @default(0)
   user_id        String
   articles       Article   @relation(fields: [article_id], references: [id], onDelete: Cascade)
@@ -155,7 +155,7 @@ model Media {
   caption    String?
   article_id String?
   created_at DateTime   @default(now())
-  updated_at DateTime
+  updated_at DateTime   @updatedAt
   articles   Article?   @relation(fields: [article_id], references: [id])
 
   @@index([article_id])
@@ -172,7 +172,7 @@ model Banner {
   link_url   String?
   is_active  Boolean         @default(true)
   created_at DateTime        @default(now())
-  updated_at DateTime
+  updated_at DateTime        @updatedAt
   position   banner_position
   end_date   DateTime?
   sort_order Int             @default(0)
@@ -202,7 +202,7 @@ model games {
   steam_id     String?
   is_active    Boolean    @default(true)
   created_at   DateTime   @default(now())
-  updated_at   DateTime
+  updated_at   DateTime   @updatedAt
   platforms    platform[] @default([])
   genres       genre[]    @default([])
 

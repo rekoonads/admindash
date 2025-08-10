@@ -254,8 +254,13 @@ export function ContentEditor({
     );
   }
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    return false;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onSubmit={handleFormSubmit}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onSave}>
