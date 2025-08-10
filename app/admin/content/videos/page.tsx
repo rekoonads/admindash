@@ -1,230 +1,235 @@
 "use client"
 
 import { useState } from "react"
-import { ContentEditor } from "@/components/content-editor"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, EyeOff, Send, Archive, Play } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
-interface Video {
-  id: string
-  title: string
-  author: string
-  status: "draft" | "published" | "scheduled" | "hidden"
-  views: number
-  duration: string
-  category: string
-  createdAt: string
-}
-
-const mockVideos: Video[] = [
-  {
-    id: "1",
-    title: "Ultimate Gaming Setup Guide 2024",
-    author: "John Admin",
-    status: "published",
-    views: 15420,
-    duration: "12:34",
-    category: "Tutorial",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Top 10 Games This Month",
-    author: "Jane Admin",
-    status: "draft",
-    views: 0,
-    duration: "8:45",
-    category: "Review",
-    createdAt: "2024-01-14",
-  },
-  {
-    id: "3",
-    title: "Live Stream Highlights",
-    author: "Mike Admin",
-    status: "scheduled",
-    views: 0,
-    duration: "25:12",
-    category: "Highlights",
-    createdAt: "2024-01-13",
-  },
-]
+import { Video, Plus, Search, Filter } from "lucide-react"
+import { useIsMobile } from "@/components/ui/use-mobile"
 
 export default function VideosPage() {
-  const [videos, setVideos] = useState<Video[]>(mockVideos)
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingVideo, setEditingVideo] = useState<Video | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const isMobile = useIsMobile()
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const filteredVideos = videos.filter((video) =>
-    video.title.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handleCreateVideo = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-  const handleEdit = (video: Video) => {
-    setEditingVideo(video)
-    setShowEditor(true)
-  }
+    const formData = new FormData(e.currentTarget)
+    formData.set("type", "VIDEO")
+    
+    // Move video URL to image field for compatibility
+    const videoUrl = formData.get("videoUrl")
+    if (videoUrl) {
+      formData.set("image", videoUrl as string)
+    }
 
-  const handleView = (video: Video) => {
-    alert(`Viewing: ${video.title}\nDuration: ${video.duration}\nViews: ${video.views}`)
-  }
+    try {
+      const response = await fetch("/api/articles", {
+        method: "POST",
+        body: formData,
+      })
 
-  const handleStatusChange = (videoId: string, newStatus: Video["status"]) => {
-    setVideos(prev => prev.map(video => 
-      video.id === videoId ? { ...video, status: newStatus } : video
-    ))
-  }
-
-  const handleDelete = (videoId: string) => {
-    if (confirm("Are you sure you want to delete this video?")) {
-      setVideos(prev => prev.filter(video => video.id !== videoId))
+      if (response.ok) {
+        setShowCreateForm(false)
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error creating video:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleSave = () => {
-    setShowEditor(false)
-    setEditingVideo(null)
-  }
-
-  if (showEditor) {
-    return (
-      <ContentEditor
-        type={editingVideo ? "Edit Video" : "New Video"}
-        initialTitle={editingVideo?.title}
-        initialContent={editingVideo ? `<h1>${editingVideo.title}</h1><p>Edit your video description here...</p>` : ""}
-        onSave={handleSave}
-        onPublish={handleSave}
-      />
-    )
-  }
+  const mockVideos = [
+    {
+      id: "1",
+      title: "Spider-Man 2 Complete Walkthrough",
+      description: "Full gameplay walkthrough of Spider-Man 2",
+      videoUrl: "https://youtube.com/watch?v=example1",
+      thumbnail: "/placeholder.jpg",
+      duration: "45:30",
+      views: 125000,
+      status: "PUBLISHED",
+      category: "Gaming",
+      platform: "PS5",
+      createdAt: "2024-01-15"
+    },
+    {
+      id: "2", 
+      title: "Top 10 Indie Games 2024",
+      description: "Best indie games released this year",
+      videoUrl: "https://youtube.com/watch?v=example2",
+      thumbnail: "/placeholder.jpg",
+      duration: "12:45",
+      views: 89000,
+      status: "PUBLISHED",
+      category: "Gaming",
+      platform: "PC",
+      createdAt: "2024-01-10"
+    }
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
         <div>
-          <h1 className="text-2xl font-bold">Videos</h1>
-          <p className="text-muted-foreground">Manage your video content</p>
+          <h1 className="text-3xl font-bold">Video Content</h1>
+          <p className="text-muted-foreground">Manage gaming videos and content</p>
         </div>
-        <Button onClick={() => setShowEditor(true)}>
+        <Button onClick={() => setShowCreateForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Video
+          Add Video
         </Button>
       </div>
 
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>All Videos</CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search videos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-64"
-                />
-              </div>
+        <CardContent className="p-4">
+          <div className={`flex gap-4 ${isMobile ? 'flex-col' : 'items-center'}`}>
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Search videos..." className="pl-8" />
             </div>
+            <Select>
+              <SelectTrigger className={isMobile ? 'w-full' : 'w-[180px]'}>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gaming">Gaming</SelectItem>
+                <SelectItem value="reviews">Reviews</SelectItem>
+                <SelectItem value="guides">Guides</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger className={isMobile ? 'w-full' : 'w-[180px]'}>
+                <SelectValue placeholder="Platform" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pc">PC</SelectItem>
+                <SelectItem value="ps5">PlayStation 5</SelectItem>
+                <SelectItem value="xbox">Xbox</SelectItem>
+                <SelectItem value="switch">Nintendo Switch</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredVideos.map((video) => (
-                <TableRow key={video.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Play className="h-4 w-4 text-muted-foreground" />
-                      {video.title}
-                    </div>
-                  </TableCell>
-                  <TableCell>{video.author}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        video.status === "published" ? "default" : 
-                        video.status === "hidden" ? "destructive" : 
-                        video.status === "scheduled" ? "secondary" : "outline"
-                      }
-                    >
-                      {video.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{video.duration}</TableCell>
-                  <TableCell>{video.views.toLocaleString()}</TableCell>
-                  <TableCell>{video.category}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(video)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleView(video)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(video.id, "published")}>
-                          <Send className="h-4 w-4 mr-2" />
-                          Publish
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(video.id, "draft")}>
-                          <Archive className="h-4 w-4 mr-2" />
-                          Draft
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(video.id, "hidden")}>
-                          <EyeOff className="h-4 w-4 mr-2" />
-                          Hide
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDelete(video.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </CardContent>
       </Card>
+
+      {/* Create Video Form */}
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Video</CardTitle>
+            <CardDescription>Create a new video content entry</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleCreateVideo}>
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              <div className="space-y-2">
+                <Label htmlFor="title">Video Title</Label>
+                <Input id="title" name="title" placeholder="Enter video title" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl">Video URL</Label>
+                <Input id="videoUrl" name="videoUrl" placeholder="YouTube/Vimeo URL (e.g., https://youtube.com/watch?v=...)" required />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" name="excerpt" placeholder="Video description" rows={3} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="content">Full Content</Label>
+              <Textarea id="content" name="content" placeholder="Detailed content" rows={4} required />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="thumbnail">Thumbnail URL</Label>
+              <Input id="thumbnail" name="thumbnail" placeholder="Video thumbnail image URL" />
+            </div>
+
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
+              <div className="space-y-2">
+                <Label htmlFor="platform">Platform</Label>
+                <Input id="platform" name="platform" placeholder="PC, PS5, Xbox, etc." />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="genre">Genre</Label>
+                <Input id="genre" name="genre" placeholder="Action, RPG, etc." />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select name="status" defaultValue="DRAFT">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="PUBLISHED">Published</SelectItem>
+                    <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Save Video"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
+            </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Videos List */}
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+        {mockVideos.map((video) => (
+          <Card key={video.id} className="overflow-hidden">
+            <div className="aspect-video bg-gray-100 relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Video className="h-12 w-12 text-gray-400" />
+              </div>
+              <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs">
+                {video.duration}
+              </div>
+            </div>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-2 line-clamp-2">{video.title}</h3>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                {video.description}
+              </p>
+              <div className="flex items-center justify-between mb-3">
+                <Badge variant="secondary">{video.category}</Badge>
+                <Badge variant="outline">{video.platform}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{video.views.toLocaleString()} views</span>
+                <span>{video.createdAt}</span>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" variant="outline" className="flex-1">
+                  Edit
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1">
+                  View
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

@@ -2,25 +2,26 @@
 
 import { prisma } from "./prisma";
 import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
 
 export async function createArticle(formData: FormData) {
   try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const author = (formData.get("author") as string) || "Admin User";
-    const category = (formData.get("category") as string) || "gaming";
-    const type = (formData.get("type") as string) || "NEWS";
+    const categoryId = formData.get("categoryId") as string;
+    const type = (formData.get("type") as string) || "ARTICLE";
     const status = (formData.get("status") as string) || "DRAFT";
-    const tags = (formData.get("tags") as string) || "";
-    const featuredImage = (formData.get("featuredImage") as string) || "";
-    const videoUrl = (formData.get("videoUrl") as string) || "";
-    const gameTitle = (formData.get("gameTitle") as string) || "";
+    const image = (formData.get("image") as string) || "";
     const platform = (formData.get("platform") as string) || "";
     const genre = (formData.get("genre") as string) || "";
-    const reviewScore = (formData.get("reviewScore") as string) || "";
+    const rating = (formData.get("rating") as string) || "";
     const pros = (formData.get("pros") as string) || "";
     const cons = (formData.get("cons") as string) || "";
+    const verdict = (formData.get("verdict") as string) || "";
 
     if (!title || !content) {
       throw new Error("Title and content are required");
@@ -32,33 +33,60 @@ export async function createArticle(formData: FormData) {
       .replace(/(^-|-$)/g, "")
       .substring(0, 50);
 
-    const tagsArray = tags ? tags.split(",").map(tag => tag.trim()).filter(Boolean) : [];
-    const platformArray = platform ? platform.split(",").map(p => p.trim()).filter(Boolean) : [];
-    const genreArray = genre ? genre.split(",").map(g => g.trim()).filter(Boolean) : [];
-    const prosArray = pros ? pros.split("\n").filter(Boolean) : [];
-    const consArray = cons ? cons.split("\n").filter(Boolean) : [];
+    // Get or create user
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: "admin@koodos.com",
+          name: "Admin User",
+          role: "ADMIN"
+        }
+      });
+    }
+
+    // Get or create category
+    let category = await prisma.category.findUnique({
+      where: { slug: categoryId || "gaming" }
+    });
+
+    if (!category) {
+      category = await prisma.category.create({
+        data: {
+          name: "Gaming",
+          slug: "gaming",
+          description: "Gaming content"
+        }
+      });
+    }
 
     const article = await prisma.article.create({
       data: {
         title,
+        slug,
         content,
         excerpt: excerpt || null,
-        author,
-        category,
+        image: image || null,
         type: type as any,
         status: status as any,
-        slug,
-        tags: tagsArray,
-        featuredImage: featuredImage || null,
-        videoUrl: videoUrl || null,
-        gameTitle: gameTitle || null,
-        platform: platformArray as any,
-        genre: genreArray as any,
-        reviewScore: reviewScore ? parseFloat(reviewScore) : null,
-        pros: prosArray,
-        cons: consArray,
+        platform: platform || null,
+        genre: genre || null,
+        rating: rating ? parseInt(rating) : null,
+        pros: pros || null,
+        cons: cons || null,
+        verdict: verdict || null,
         publishedAt: status === "PUBLISHED" ? new Date() : null,
+        authorId: user.id,
+        categoryId: category.id
       },
+      include: {
+        author: { select: { name: true, email: true } },
+        category: { select: { name: true, slug: true } }
+      }
     });
 
     revalidatePath("/admin/content");
@@ -74,45 +102,52 @@ export async function getArticles(filters?: {
   status?: string;
   category?: string;
   type?: string;
-  platform?: string;
   search?: string;
 }) {
   try {
     const where: any = {};
 
     if (filters?.status) where.status = filters.status;
-    if (filters?.category) where.category = filters.category;
     if (filters?.type) where.type = filters.type;
-    if (filters?.platform) where.platform = { has: filters.platform };
     
     if (filters?.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { content: { contains: filters.search, mode: "insensitive" } },
-        { gameTitle: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search } },
+        { content: { contains: filters.search } }
       ];
     }
 
     const articles = await prisma.article.findMany({
       where,
+      include: {
+        author: { select: { name: true, email: true } },
+        category: { select: { name: true, slug: true } }
+      },
       orderBy: { createdAt: "desc" },
     });
 
     return articles;
   } catch (error) {
     console.error("Error in getArticles:", error);
-    throw error;
+    return [];
   }
 }
 
-export async function getPublishedArticles(category?: string, type?: string) {
+export async function getPublishedArticles(categorySlug?: string, type?: string) {
   try {
     const where: any = { status: "PUBLISHED" };
-    if (category) where.category = category;
+    
+    if (categorySlug) {
+      where.category = { slug: categorySlug };
+    }
     if (type) where.type = type;
 
     const articles = await prisma.article.findMany({
       where,
+      include: {
+        author: { select: { name: true, email: true } },
+        category: { select: { name: true, slug: true } }
+      },
       orderBy: { publishedAt: "desc" },
       take: 20,
     });
@@ -120,7 +155,7 @@ export async function getPublishedArticles(category?: string, type?: string) {
     return articles;
   } catch (error) {
     console.error("Error in getPublishedArticles:", error);
-    throw error;
+    return [];
   }
 }
 
@@ -128,6 +163,10 @@ export async function getArticleBySlug(slug: string) {
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
+      include: {
+        author: { select: { name: true, email: true } },
+        category: { select: { name: true, slug: true } }
+      }
     });
 
     if (article) {
@@ -140,7 +179,7 @@ export async function getArticleBySlug(slug: string) {
     return article;
   } catch (error) {
     console.error("Error in getArticleBySlug:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -165,87 +204,92 @@ export async function updateArticleStatus(id: string, status: string) {
   }
 }
 
-// Legacy functions for backward compatibility
-export const createPost = createArticle;
-export const getPosts = getArticles;
-export const getPostBySlug = getArticleBySlug;
-export const getPublishedPosts = getPublishedArticles;
-export const updatePostStatus = updateArticleStatus;
-export const incrementPostViews = getArticleBySlug;
-
-export async function updatePost(id: string, formData: FormData) {
+export async function createVideoContent(formData: FormData) {
   try {
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const excerpt = (formData.get("excerpt") as string) || "";
-    const category = (formData.get("category") as string) || "gaming";
-    const status = (formData.get("status") as string) || "DRAFT";
-    const tags = (formData.get("tags") as string) || "";
-    const featuredImage = (formData.get("featuredImage") as string) || "";
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
 
-    if (!title || !content) {
-      throw new Error("Title and content are required");
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const videoUrl = formData.get("videoUrl") as string;
+    const category = (formData.get("category") as string) || "gaming";
+    const platform = (formData.get("platform") as string) || "";
+    const status = (formData.get("status") as string) || "DRAFT";
+
+    if (!title || !videoUrl) {
+      throw new Error("Title and video URL are required");
     }
 
     const slug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
-      .substring(0, 50);
+      .replace(/(^-|-$)/g, "");
 
-    const tagsArray = tags ? tags.split(",").map(tag => tag.trim()).filter(Boolean) : [];
-
-    const article = await prisma.article.update({
-      where: { id },
-      data: {
-        title,
-        content,
-        excerpt: excerpt || null,
-        category,
-        status: status as any,
-        slug,
-        tags: tagsArray,
-        featuredImage: featuredImage || null,
-      },
+    // Get or create user
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId }
     });
 
-    revalidatePath("/admin/content");
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: "admin@koodos.com",
+          name: "Admin User",
+          role: "ADMIN"
+        }
+      });
+    }
+
+    // Get or create category
+    let categoryRecord = await prisma.category.findUnique({
+      where: { slug: category }
+    });
+
+    if (!categoryRecord) {
+      categoryRecord = await prisma.category.create({
+        data: {
+          name: category.charAt(0).toUpperCase() + category.slice(1),
+          slug: category,
+          description: `${category} content`
+        }
+      });
+    }
+
+    const article = await prisma.article.create({
+      data: {
+        title,
+        slug,
+        content: description,
+        excerpt: description.substring(0, 200),
+        type: "VIDEO",
+        status: status as any,
+        platform: platform || null,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
+        authorId: user.id,
+        categoryId: categoryRecord.id
+      },
+      include: {
+        author: { select: { name: true, email: true } },
+        category: { select: { name: true, slug: true } }
+      }
+    });
+
+    // Create media entry for video
+    await prisma.media.create({
+      data: {
+        url: videoUrl,
+        type: "VIDEO",
+        alt: title,
+        articleId: article.id
+      }
+    });
+
+    revalidatePath("/admin/content/videos");
     revalidatePath("/");
     return article;
   } catch (error) {
-    console.error("Error in updatePost:", error);
-    throw error;
-  }
-}
-
-export async function deletePost(id: string) {
-  try {
-    await prisma.article.delete({
-      where: { id },
-    });
-
-    revalidatePath("/admin/content");
-    revalidatePath("/");
-  } catch (error) {
-    console.error("Error in deletePost:", error);
-    throw error;
-  }
-}
-
-export async function getBanners(page: string, position: string) {
-  try {
-    const banners = await prisma.banner.findMany({
-      where: {
-        isActive: true,
-        page: page,
-        position: position as any,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return banners;
-  } catch (error) {
-    console.error("Error in getBanners:", error);
+    console.error("Error in createVideoContent:", error);
     throw error;
   }
 }

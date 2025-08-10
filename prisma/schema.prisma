@@ -1,323 +1,170 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-model Article {
-  id            String        @id @default(cuid())
-  title         String
-  content       String
-  excerpt       String?
-  author        String        @default("Admin User")
-  status        ArticleStatus @default(DRAFT)
-  type          ArticleType   @default(NEWS)
-  category      String        @default("gaming")
-  subcategory   String?       @map("subcategory")
-  views         Int           @default(0)
-  likes         Int           @default(0)
-  shares        Int           @default(0)
-  featuredImage String?       @map("featured_image")
-  videoUrl      String?       @map("video_url")
-  slug          String?       @unique
-  tags          String[]      @default([])
-  
-  // Gaming specific fields
-  gameTitle     String?       @map("game_title")
-  platform      Platform[]    @default([])
-  genre         Genre[]       @default([])
-  developer     String?
-  publisher     String?
-  releaseDate   DateTime?     @map("release_date")
-  
-  // Review specific fields
-  reviewScore   Float?        @map("review_score") // 0-10 scale
-  pros          String[]      @default([])
-  cons          String[]      @default([])
-  verdict       String?
-  
-  // Content flags
-  isBreaking    Boolean       @default(false) @map("is_breaking")
-  isFeatured    Boolean       @default(false) @map("is_featured")
-  isSponsored   Boolean       @default(false) @map("is_sponsored")
-  readTime      Int?          @map("read_time") // in minutes
-  
-  // SEO fields
-  metaTitle     String?       @map("meta_title")
-  metaDescription String?     @map("meta_description")
-  
-  publishedAt   DateTime?     @map("published_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-
-  // Relations
-  comments Comment[]
-  media    Media[]
-  reactions Reaction[]
-
-  @@index([status])
-  @@index([type])
-  @@index([category])
-  @@index([platform])
-  @@index([genre])
-  @@index([createdAt(sort: Desc)])
-  @@index([publishedAt(sort: Desc)])
-  @@index([views(sort: Desc)])
-  @@index([slug])
-  @@index([isBreaking])
-  @@index([isFeatured])
-  @@index([gameTitle])
-  @@map("articles")
-}
-
-model Comment {
+model User {
   id        String   @id @default(cuid())
-  content   String
-  author    String
-  userId    String?  @map("user_id")
-  email     String?
-  website   String?
-  isApproved Boolean @default(false) @map("is_approved")
-  likes     Int      @default(0)
-  articleId String   @map("article_id")
-  parentId  String?  @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  avatar    String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
-  article Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  parent  Comment? @relation("CommentReplies", fields: [parentId], references: [id])
-  replies Comment[] @relation("CommentReplies")
+  articles Article[]
+  comments Comment[]
+  likes    Like[]
 
-  @@index([articleId])
-  @@index([userId])
-  @@index([isApproved])
-  @@index([createdAt(sort: Desc)])
-  @@map("comments")
-}
-
-model Reaction {
-  id        String      @id @default(cuid())
-  type      ReactionType
-  userId    String      @map("user_id")
-  articleId String      @map("article_id")
-  createdAt DateTime    @default(now()) @map("created_at")
-
-  // Relations
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, articleId, type])
-  @@index([articleId])
-  @@index([userId])
-  @@map("reactions")
-}
-
-model Media {
-  id        String    @id @default(cuid())
-  filename  String
-  url       String
-  type      MediaType
-  size      Int? // in bytes
-  alt       String?
-  caption   String?
-  articleId String?   @map("article_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
-
-  @@index([type])
-  @@index([articleId])
-  @@map("media")
-}
-
-model Game {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  description String?
-  developer   String?
-  publisher   String?
-  platforms   Platform[] @default([])
-  genres      Genre[]   @default([])
-  releaseDate DateTime? @map("release_date")
-  rating      String?   // ESRB rating
-  metacritic  Int?      // Metacritic score
-  coverImage  String?   @map("cover_image")
-  screenshots String[]  @default([])
-  trailer     String?
-  website     String?
-  steamId     String?   @map("steam_id")
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@index([slug])
-  @@index([platforms])
-  @@index([genres])
-  @@index([releaseDate])
-  @@index([isActive])
-  @@map("games")
+  @@map("users")
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
   description String?
-  color       String?  // hex color for UI
-  icon        String?  // icon name or URL
-  parentId    String?  @map("parent_id")
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  color       String    @default("#ef4444")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  // Relations
-  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children Category[] @relation("CategoryHierarchy")
+  articles Article[]
 
-  @@index([slug])
-  @@index([parentId])
-  @@index([isActive])
-  @@index([sortOrder])
   @@map("categories")
+}
+
+model Article {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  content     String
+  excerpt     String?
+  image       String?
+  status      Status      @default(DRAFT)
+  type        ArticleType @default(ARTICLE)
+  featured    Boolean     @default(false)
+  breaking    Boolean     @default(false)
+  views       Int         @default(0)
+  readTime    String?
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  tags     Tag[]
+  comments Comment[]
+  likes    Like[]
+  media    Media[]
+
+  // Review specific fields
+  rating   Int?
+  pros     String?
+  cons     String?
+  verdict  String?
+
+  // Gaming specific fields
+  platform    String?
+  specs       String? // JSON string
+  gameInfo    String? // JSON string
+  developer   String?
+  publisher   String?
+  releaseDate DateTime?
+  genre       String?
+
+  @@map("articles")
 }
 
 model Tag {
   id        String   @id @default(cuid())
   name      String   @unique
   slug      String   @unique
-  color     String?  // hex color for UI
-  usageCount Int     @default(0) @map("usage_count")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now())
 
-  @@index([slug])
-  @@index([usageCount(sort: Desc)])
+  articles Article[]
+
   @@map("tags")
 }
 
-model Banner {
-  id        String         @id @default(cuid())
-  title     String?
-  content   String?
-  imageUrl  String?        @map("image_url")
-  linkUrl   String?        @map("link_url")
-  position  BannerPosition
-  page      String         @default("home")
-  isActive  Boolean        @default(true) @map("is_active")
-  startDate DateTime?      @map("start_date")
-  endDate   DateTime?      @map("end_date")
-  sortOrder Int            @default(0) @map("sort_order")
-  createdAt DateTime       @default(now()) @map("created_at")
-  updatedAt DateTime       @updatedAt @map("updated_at")
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([position])
-  @@index([page])
-  @@index([isActive])
-  @@index([sortOrder])
-  @@map("banners")
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id])
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id])
+
+  @@map("comments")
 }
 
-// Enums
-enum ArticleStatus {
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id])
+
+  @@unique([userId, articleId])
+  @@map("likes")
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  url       String
+  type      MediaType
+  alt       String?
+  caption   String?
+  createdAt DateTime  @default(now())
+
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id])
+
+  @@map("media")
+}
+
+enum Role {
+  USER
+  ADMIN
+  EDITOR
+}
+
+enum Status {
   DRAFT
   PUBLISHED
-  HIDDEN
-  SCHEDULED
   ARCHIVED
-
-  @@map("article_status")
 }
 
 enum ArticleType {
+  ARTICLE
   NEWS
   REVIEW
+  GAMING
+  TECH
+  ANIME
+  COMICS
+  VIDEO
   GUIDE
   FEATURE
   INTERVIEW
   OPINION
-  VIDEO
-  WIKI
   LIST
-  ANIME
-  COMICS
-  COSPLAY
-  ESPORTS
-  TECH
-  SCIENCE
-
-  @@map("article_type")
-}
-
-enum Platform {
-  PC
-  PS5
-  PS4
-  XBOX_SERIES
-  XBOX_ONE
-  NINTENDO_SWITCH
-  MOBILE_IOS
-  MOBILE_ANDROID
-  VR
-  STEAM_DECK
-  
-  @@map("platform")
-}
-
-enum Genre {
-  ACTION
-  ADVENTURE
-  RPG
-  STRATEGY
-  SIMULATION
-  SPORTS
-  RACING
-  FIGHTING
-  PUZZLE
-  HORROR
-  SHOOTER
-  PLATFORMER
-  MMO
-  INDIE
-  CASUAL
-  
-  @@map("genre")
-}
-
-enum ReactionType {
-  LIKE
-  LOVE
-  LAUGH
-  ANGRY
-  SAD
-  
-  @@map("reaction_type")
 }
 
 enum MediaType {
   IMAGE
   VIDEO
   AUDIO
-  DOCUMENT
-
-  @@map("media_type")
-}
-
-enum BannerPosition {
-  TOP
-  BOTTOM
-  SIDEBAR
-  HERO
-  INLINE
-
-  @@map("banner_position")
 }
