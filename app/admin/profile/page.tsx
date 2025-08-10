@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@/lib/mock-auth"
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Mail, Shield } from "lucide-react"
 
 export default function ProfilePage() {
-  const { user, orgRole } = useAuth()
+  const { user } = useUser()
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -29,7 +29,7 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="/placeholder.svg?height=80&width=80" alt="Avatar" />
+                <AvatarImage src={user?.imageUrl} alt="Avatar" />
                 <AvatarFallback className="text-lg">
                   {user?.firstName?.[0]}
                   {user?.lastName?.[0]}
@@ -41,17 +41,17 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue={user?.firstName} />
+                <Input id="firstName" defaultValue={user?.firstName || ""} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue={user?.lastName} />
+                <Input id="lastName" defaultValue={user?.lastName || ""} />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={user?.primaryEmailAddress?.emailAddress} />
+              <Input id="email" type="email" defaultValue={user?.emailAddresses?.[0]?.emailAddress || ""} />
             </div>
 
             <Button>Save Changes</Button>
@@ -71,12 +71,12 @@ export default function ProfilePage() {
 
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Role: {orgRole === "org:admin" ? "Administrator" : "Member"}</span>
+              <span className="text-sm">Role: Administrator</span>
             </div>
 
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Email: {user?.primaryEmailAddress?.emailAddress}</span>
+              <span className="text-sm">Email: {user?.emailAddresses?.[0]?.emailAddress}</span>
             </div>
           </CardContent>
         </Card>
