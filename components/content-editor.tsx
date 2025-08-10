@@ -142,9 +142,21 @@ export function ContentEditor({
   };
 
   const categories = [
+    "latest-news",
+    "reviews",
+    "gaming-hub",
+    "tech-zone",
+    "video-content",
+    "anime-corner",
+    "discussions",
+    "deep-dives",
+    "game-guides",
+    "top-lists",
+    "community",
+    "comics-hub",
+    "social",
     "gaming-news",
     "game-reviews",
-    "game-guides",
     "gaming-videos",
     "pc-gaming",
     "playstation-5",
