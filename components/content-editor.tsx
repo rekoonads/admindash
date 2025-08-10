@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { createPost, updatePost } from "@/lib/actions";
+import { createArticle, updatePost } from "@/lib/actions";
 import type { Post } from "@/lib/prisma";
 import Image from "next/image";
 import { TiptapEditor } from "./tiptap-editor";
@@ -55,7 +55,7 @@ export function ContentEditor({
   initialTitle = "",
   initialContent = "",
   initialExcerpt = "",
-  initialCategory = "news",
+  initialCategory = "latest-news",
   initialStatus = "DRAFT",
   editingPost,
   onSave,
@@ -83,12 +83,12 @@ export function ContentEditor({
       setTitle(editingPost.title);
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
-      setCategory(editingPost.category);
+      setCategory(editingPost.category?.slug || "latest-news");
       setStatus(editingPost.status as any);
-      setTags(editingPost.tags.join(", "));
-      setFeaturedImage(editingPost.featuredImage || "");
-      setVideoUrl(editingPost.videoUrl || "");
-      setThumbnail(editingPost.thumbnail || "");
+      setTags(""); // Tags not in current schema
+      setFeaturedImage(editingPost.image || "");
+      setVideoUrl(""); // Not in schema
+      setThumbnail(""); // Not in schema
     }
   }, [editingPost]);
 
@@ -123,7 +123,7 @@ export function ContentEditor({
       if (editingPost) {
         await updatePost(editingPost.id, formData);
       } else {
-        await createPost(formData);
+        await createArticle(formData);
       }
 
       if (saveStatus === "PUBLISHED") {
@@ -142,13 +142,20 @@ export function ContentEditor({
   };
 
   const categories = [
-    "news",
-    "reviews",
-    "videos",
+    "gaming-news",
+    "game-reviews",
     "game-guides",
-    "anime-corner",
-    "tech-zone",
-    "comics-hub",
+    "gaming-videos",
+    "pc-gaming",
+    "playstation-5",
+    "xbox",
+    "nintendo-switch",
+    "mobile-gaming",
+    "anime",
+    "comics",
+    "esports",
+    "tech-news",
+    "science",
   ];
 
   if (showPreview) {

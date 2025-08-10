@@ -2,7 +2,7 @@
 
 import { prisma } from "./prisma";
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function createArticle(formData: FormData) {
   try {
@@ -15,7 +15,7 @@ export async function createArticle(formData: FormData) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const categoryId = (formData.get("categoryId") as string) || "gaming";
+    const categoryId = (formData.get("categoryId") as string) || "latest-news";
     const type = (formData.get("type") as string) || "NEWS";
     const status = (formData.get("status") as string) || "DRAFT";
     const image = (formData.get("image") as string) || "";
@@ -56,13 +56,13 @@ export async function createArticle(formData: FormData) {
     });
 
     if (!user) {
-      const { currentUser } = await auth();
+      const clerkUser = await currentUser();
       console.log("Creating new user for:", userId);
       user = await prisma.user.create({
         data: {
           clerkId: userId,
-          email: currentUser?.emailAddresses[0]?.emailAddress || "admin@koodos.com",
-          name: currentUser?.fullName || currentUser?.firstName || "Koodos Team",
+          email: clerkUser?.emailAddresses[0]?.emailAddress || "admin@koodos.com",
+          name: clerkUser?.fullName || clerkUser?.firstName || "Koodos Team",
           role: "ADMIN"
         }
       });
@@ -149,7 +149,7 @@ export async function getArticles(filters?: {
       },
       orderBy: { createdAt: "desc" },
       take: filters?.limit || undefined,
-    });
+    }) as any[];
 
     return articles;
   } catch (error) {

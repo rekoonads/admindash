@@ -11,32 +11,14 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export { prisma }
 
-// Helper types
-export type Post = {
-  id: string;
-  title: string;
-  content: string;
-  excerpt?: string | null;
-  author: string;
-  status: "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED";
-  category: string;
-  views: number;
-  featuredImage?: string | null;
-  slug?: string | null;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
+// Use Prisma generated types
+export type { Article, User, Category, Banner } from '@prisma/client';
+
+// Extended types with relations
+export type ArticleWithRelations = Article & {
+  author: { name: string | null; email: string };
+  category: { name: string; slug: string };
 };
 
-export type Banner = {
-  id: string;
-  page: string;
-  position: "TOP" | "BOTTOM" | "SIDEBAR";
-  title?: string | null;
-  content?: string | null;
-  imageUrl?: string | null;
-  linkUrl?: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+// Legacy alias for backward compatibility
+export type Post = ArticleWithRelations;

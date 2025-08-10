@@ -41,9 +41,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('API Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create article'
     return NextResponse.json({ 
       success: false,
-      error: 'Failed to create article' 
+      error: errorMessage
     }, { status: 500 })
   }
 }
