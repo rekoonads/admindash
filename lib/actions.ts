@@ -92,22 +92,19 @@ export async function createArticle(formData: FormData) {
         slug,
         content,
         excerpt: excerpt || null,
-        image: image || videoUrl || featuredImage || null,
+        featured_image: image || videoUrl || featuredImage || null,
+        video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        platform: platform || null,
-        genre: genre || null,
-        rating: rating ? parseInt(rating) : null,
-        pros: pros || null,
-        cons: cons || null,
+        category: categoryId,
+        author: user.name || "Koodos Team",
+        platform: platform ? [platform as any] : [],
+        genre: genre ? [genre as any] : [],
+        review_score: rating ? parseFloat(rating) : null,
+        pros: pros ? [pros] : [],
+        cons: cons ? [cons] : [],
         verdict: verdict || null,
-        publishedAt: status === "PUBLISHED" ? new Date() : null,
-        authorId: user.id,
-        categoryId: category.id
-      },
-      include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true, slug: true } }
+        published_at: status === "PUBLISHED" ? new Date() : null,
       }
     });
 
@@ -145,13 +142,9 @@ export async function getArticles(filters?: {
 
     const articles = await prisma.article.findMany({
       where,
-      include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true, slug: true } }
-      },
-      orderBy: { createdAt: "desc" },
+      orderBy: { created_at: "desc" },
       take: filters?.limit || undefined,
-    }) as any[];
+    });
 
     return articles;
   } catch (error) {

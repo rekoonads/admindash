@@ -8,196 +8,304 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  name      String?
-  avatar    String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(cuid())
+  clerk_id   String    @unique
+  email      String    @unique
+  first_name String?
+  last_name  String?
+  username   String?   @unique
+  avatar     String?
+  role       user_role @default(EDITOR)
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime
 
-  articles Article[]
-  comments Comment[]
-  likes    Like[]
-
+  @@index([clerk_id])
+  @@index([email])
+  @@index([role])
+  @@index([username])
   @@map("users")
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  color       String    @default("#ef4444")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String     @id @default(cuid())
+  name             String     @unique
+  slug             String     @unique
+  description      String?
+  color            String?
+  icon             String?
+  parent_id        String?
+  is_active        Boolean    @default(true)
+  sort_order       Int        @default(0)
+  created_at       DateTime   @default(now())
+  updated_at       DateTime
+  categories       Category?  @relation("categoriesTocategories", fields: [parent_id], references: [id])
+  other_categories Category[] @relation("categoriesTocategories")
 
-  articles Article[]
-
+  @@index([is_active])
+  @@index([parent_id])
+  @@index([slug])
+  @@index([sort_order])
   @@map("categories")
 }
 
 model Article {
-  id          String      @id @default(cuid())
-  title       String
-  slug        String      @unique
-  content     String
-  excerpt     String?
-  image       String?
-  status      Status      @default(DRAFT)
-  type        ArticleType @default(ARTICLE)
-  featured    Boolean     @default(false)
-  breaking    Boolean     @default(false)
-  views       Int         @default(0)
-  readTime    String?
-  publishedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id               String         @id @default(cuid())
+  title            String
+  content          String
+  excerpt          String?
+  author           String         @default("Admin")
+  status           article_status @default(DRAFT)
+  type             article_type   @default(NEWS)
+  category         String         @default("gaming")
+  views            Int            @default(0)
+  likes            Int            @default(0)
+  featured_image   String?
+  slug             String?        @unique
+  tags             String[]       @default([])
+  game_title       String?
+  release_date     DateTime?
+  review_score     Float?
+  is_breaking      Boolean        @default(false)
+  is_featured      Boolean        @default(false)
+  read_time        Int?
+  published_at     DateTime?
+  created_at       DateTime       @default(now())
+  updated_at       DateTime
+  video_url        String?
+  cons             String[]       @default([])
+  developer        String?
+  is_sponsored     Boolean        @default(false)
+  meta_description String?
+  meta_title       String?
+  pros             String[]       @default([])
+  publisher        String?
+  shares           Int            @default(0)
+  subcategory      String?
+  verdict          String?
+  platform         platform[]     @default([])
+  genre            genre[]        @default([])
+  comments         Comment[]
+  media            Media[]
+  reactions        reactions[]
 
-  authorId   String
-  author     User     @relation(fields: [authorId], references: [id])
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  tags     Tag[]
-  comments Comment[]
-  likes    Like[]
-  media    Media[]
-
-  // Review specific fields
-  rating   Int?
-  pros     String?
-  cons     String?
-  verdict  String?
-
-  // Gaming specific fields
-  platform    String?
-  specs       String? // JSON string
-  gameInfo    String? // JSON string
-  developer   String?
-  publisher   String?
-  releaseDate DateTime?
-  genre       String?
-
+  @@index([category])
+  @@index([created_at(sort: Desc)])
+  @@index([game_title])
+  @@index([genre])
+  @@index([is_breaking])
+  @@index([is_featured])
+  @@index([platform])
+  @@index([published_at(sort: Desc)])
+  @@index([slug])
+  @@index([status])
+  @@index([type])
+  @@index([views(sort: Desc)])
   @@map("articles")
 }
 
 model Tag {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  color       String?
+  usage_count Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime
 
-  articles Article[]
-
+  @@index([slug])
+  @@index([usage_count(sort: Desc)])
   @@map("tags")
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(cuid())
+  content        String
+  author         String
+  email          String?
+  website        String?
+  is_approved    Boolean   @default(false)
+  article_id     String
+  parent_id      String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime
+  likes          Int       @default(0)
+  user_id        String?
+  articles       Article   @relation(fields: [article_id], references: [id], onDelete: Cascade)
+  comments       Comment?  @relation("commentsTocomments", fields: [parent_id], references: [id])
+  other_comments Comment[] @relation("commentsTocomments")
 
-  authorId  String
-  author    User    @relation(fields: [authorId], references: [id])
-  articleId String
-  article   Article @relation(fields: [articleId], references: [id])
-
+  @@index([article_id])
+  @@index([created_at(sort: Desc)])
+  @@index([is_approved])
+  @@index([user_id])
   @@map("comments")
 }
 
-model Like {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
-  articleId String
-  article   Article @relation(fields: [articleId], references: [id])
-
-  @@unique([userId, articleId])
-  @@map("likes")
-}
-
 model Media {
-  id        String    @id @default(cuid())
-  url       String
-  type      MediaType
-  alt       String?
-  caption   String?
-  createdAt DateTime  @default(now())
+  id         String     @id @default(cuid())
+  filename   String
+  url        String
+  type       media_type
+  size       Int?
+  alt        String?
+  caption    String?
+  article_id String?
+  created_at DateTime   @default(now())
+  updated_at DateTime
+  articles   Article?   @relation(fields: [article_id], references: [id])
 
-  articleId String
-  article   Article @relation(fields: [articleId], references: [id])
-
+  @@index([article_id])
+  @@index([type])
   @@map("media")
 }
 
-enum Role {
-  USER
-  ADMIN
-  EDITOR
+model Banner {
+  id         String          @id @default(cuid())
+  page       String          @default("home")
+  title      String?
+  content    String?
+  image_url  String?
+  link_url   String?
+  is_active  Boolean         @default(true)
+  created_at DateTime        @default(now())
+  updated_at DateTime
+  position   banner_position
+  end_date   DateTime?
+  sort_order Int             @default(0)
+  start_date DateTime?
+
+  @@index([is_active])
+  @@index([page])
+  @@index([position])
+  @@index([sort_order])
+  @@map("banners")
 }
 
-enum Status {
+model games {
+  id           String     @id
+  title        String
+  slug         String     @unique
+  description  String?
+  developer    String?
+  publisher    String?
+  release_date DateTime?
+  rating       String?
+  metacritic   Int?
+  cover_image  String?
+  screenshots  String[]   @default([])
+  trailer      String?
+  website      String?
+  steam_id     String?
+  is_active    Boolean    @default(true)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime
+  platforms    platform[] @default([])
+  genres       genre[]    @default([])
+
+  @@index([genres])
+  @@index([is_active])
+  @@index([platforms])
+  @@index([release_date])
+  @@index([slug])
+}
+
+model reactions {
+  id         String        @id
+  type       reaction_type
+  user_id    String
+  article_id String
+  created_at DateTime      @default(now())
+  articles   Article       @relation(fields: [article_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, article_id, type])
+  @@index([article_id])
+  @@index([user_id])
+}
+
+enum article_status {
   DRAFT
   PUBLISHED
   HIDDEN
+  SCHEDULED
   ARCHIVED
 }
 
-enum ArticleType {
-  ARTICLE
+enum article_type {
   NEWS
   REVIEW
-  GAMING
-  TECH
-  ANIME
-  COMICS
-  VIDEO
   GUIDE
   FEATURE
   INTERVIEW
   OPINION
+  VIDEO
+  WIKI
   LIST
+  ANIME
+  COMICS
+  COSPLAY
+  ESPORTS
+  TECH
+  SCIENCE
 }
 
-model Banner {
-  id        String   @id @default(cuid())
-  page      String
-  position  String
-  title     String
-  content   String?
-  imageUrl  String?
-  linkUrl   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("banners")
+enum banner_position {
+  TOP
+  BOTTOM
+  SIDEBAR
+  HERO
+  INLINE
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  excerpt   String?
-  author    String
-  status    String   @default("DRAFT")
-  category  String
-  slug      String   @unique
-  views     Int      @default(0)
-  tags      String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("posts")
+enum genre {
+  ACTION
+  ADVENTURE
+  RPG
+  STRATEGY
+  SIMULATION
+  SPORTS
+  RACING
+  FIGHTING
+  PUZZLE
+  HORROR
+  SHOOTER
+  PLATFORMER
+  MMO
+  INDIE
+  CASUAL
 }
 
-enum MediaType {
+enum media_type {
   IMAGE
   VIDEO
   AUDIO
+  DOCUMENT
+}
+
+enum platform {
+  PC
+  PS5
+  PS4
+  XBOX_SERIES
+  XBOX_ONE
+  NINTENDO_SWITCH
+  MOBILE_IOS
+  MOBILE_ANDROID
+  VR
+  STEAM_DECK
+}
+
+enum reaction_type {
+  LIKE
+  LOVE
+  LAUGH
+  ANGRY
+  SAD
+}
+
+enum user_role {
+  ADMIN
+  EDITOR
+  AUTHOR
+  CONTRIBUTOR
 }
