@@ -70,6 +70,8 @@ export function ContentEditor({
   >(initialStatus as any);
   const [tags, setTags] = useState("");
   const [featuredImage, setFeaturedImage] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [thumbnail, setThumbnail] = useState("");
   const [author] = useState("Admin User");
   const [isLoading, setIsLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -85,6 +87,8 @@ export function ContentEditor({
       setStatus(editingPost.status as any);
       setTags(editingPost.tags.join(", "));
       setFeaturedImage(editingPost.featuredImage || "");
+      setVideoUrl(editingPost.videoUrl || "");
+      setThumbnail(editingPost.thumbnail || "");
     }
   }, [editingPost]);
 
@@ -105,6 +109,15 @@ export function ContentEditor({
       formData.append("status", saveStatus);
       formData.append("tags", tags);
       formData.append("featuredImage", featuredImage);
+      formData.append("videoUrl", videoUrl);
+      formData.append("thumbnail", thumbnail);
+      
+      // Set image field for video content
+      if (videoUrl) {
+        formData.append("image", videoUrl);
+      } else if (featuredImage) {
+        formData.append("image", featuredImage);
+      }
 
       if (editingPost) {
         await updatePost(editingPost.id, formData);
@@ -283,16 +296,37 @@ export function ContentEditor({
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <ImageIcon className="h-4 w-4" />
-                Featured Image
+                Media Content
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <CloudinaryImageUpload
-                value={featuredImage}
-                onChange={setFeaturedImage}
-                onRemove={() => setFeaturedImage("")}
-                disabled={isLoading}
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Featured Image</Label>
+                <CloudinaryImageUpload
+                  value={featuredImage}
+                  onChange={setFeaturedImage}
+                  onRemove={() => setFeaturedImage("")}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Video URL</Label>
+                <Input
+                  placeholder="YouTube/Vimeo URL"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Video Thumbnail</Label>
+                <Input
+                  placeholder="Thumbnail image URL"
+                  value={thumbnail}
+                  onChange={(e) => setThumbnail(e.target.value)}
+                />
+              </div>
             </CardContent>
           </Card>
 

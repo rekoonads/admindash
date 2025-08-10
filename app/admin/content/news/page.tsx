@@ -91,7 +91,7 @@ export default function NewsPage() {
 
   const handleView = (post: Post) => {
     if (post.slug) {
-      window.open(`/news/${post.slug}`, "_blank");
+      window.open(`https://koodos.in/article/news/${post.slug}`, "_blank");
     } else {
       alert(
         `Viewing: ${post.title}\nAuthor: ${post.author}\nStatus: ${post.status}`

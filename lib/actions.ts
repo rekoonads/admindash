@@ -89,6 +89,29 @@ export async function createArticle(formData: FormData) {
       }
     });
 
+    // Create media entries if provided
+    if (videoUrl) {
+      await prisma.media.create({
+        data: {
+          url: videoUrl,
+          type: "VIDEO",
+          alt: title,
+          articleId: article.id
+        }
+      });
+    }
+    
+    if (thumbnail) {
+      await prisma.media.create({
+        data: {
+          url: thumbnail,
+          type: "IMAGE",
+          alt: `${title} thumbnail`,
+          articleId: article.id
+        }
+      });
+    }
+
     revalidatePath("/admin/content");
     revalidatePath("/");
     return article;
@@ -290,6 +313,65 @@ export async function createVideoContent(formData: FormData) {
     return article;
   } catch (error) {
     console.error("Error in createVideoContent:", error);
+    throw error;
+  }
+}
+
+// Legacy functions
+export const getPosts = getArticles;
+export const createPost = createArticle;
+export const updatePostStatus = updateArticleStatus;
+
+export async function updatePost(id: string, formData: FormData) {
+  try {
+    const title = formData.get("title") as string;
+    const content = formData.get("content") as string;
+    const excerpt = (formData.get("excerpt") as string) || "";
+    const status = (formData.get("status") as string) || "DRAFT";
+    const image = (formData.get("image") as string) || "";
+
+    if (!title || !content) {
+      throw new Error("Title and content are required");
+    }
+
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .substring(0, 50);
+
+    const article = await prisma.article.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        excerpt: excerpt || null,
+        status: status as any,
+        slug,
+        image: image || null,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
+      },
+    });
+
+    revalidatePath("/admin/content");
+    revalidatePath("/");
+    return article;
+  } catch (error) {
+    console.error("Error in updatePost:", error);
+    throw error;
+  }
+}
+
+export async function deletePost(id: string) {
+  try {
+    await prisma.article.delete({
+      where: { id },
+    });
+
+    revalidatePath("/admin/content");
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Error in deletePost:", error);
     throw error;
   }
 }

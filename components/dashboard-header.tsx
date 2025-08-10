@@ -8,7 +8,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserButton } from "@clerk/nextjs"
 import { useIsMobile } from "@/components/ui/use-mobile"
-import { MobileSearch } from "@/components/mobile-search"
+
 import Link from "next/link"
 
 export function DashboardHeader() {
@@ -35,7 +35,11 @@ export function DashboardHeader() {
       )}
 
       <div className="flex items-center gap-2 ml-auto">
-        {isMobile && <MobileSearch />}
+        {isMobile && (
+          <Button variant="ghost" size="icon">
+            <Search className="h-4 w-4" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
           <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
