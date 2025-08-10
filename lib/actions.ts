@@ -58,60 +58,49 @@ export async function createArticle(formData: FormData) {
 
     // Get or create user
     const actualUserId = userId || "default-admin";
-    let user = await prisma.user.findUnique({
-      where: { clerk_id: actualUserId }
-    });
-
+    let user;
     const clerkUser = await currentUser();
     
-    if (!user) {
-      console.log("Creating new user for:", actualUserId);
-      user = await prisma.user.create({
-        data: {
-          clerk_id: actualUserId,
-          email: clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com",
-          first_name: clerkUser?.firstName || "User",
-          last_name: clerkUser?.lastName || "Name",
-          username: clerkUser?.username || null,
-          role: "ADMIN",
-          last_login: new Date(),
-          updated_at: new Date()
-        }
+    try {
+      user = await prisma.user.findUnique({
+        where: { clerk_id: actualUserId }
       });
-    } else {
-      // Update last login for existing user
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { last_login: new Date() }
-      });
+
+      if (!user) {
+        console.log("Creating new user for:", actualUserId);
+        user = await prisma.user.create({
+          data: {
+            clerk_id: actualUserId,
+            email: clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com",
+            first_name: clerkUser?.firstName || "User",
+            last_name: clerkUser?.lastName || "Name",
+            username: clerkUser?.username || null,
+            role: "ADMIN",
+            last_login: new Date(),
+            updated_at: new Date()
+          }
+        });
+      } else {
+        // Update last login for existing user
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { last_login: new Date() }
+        });
+      }
+    } catch (userError) {
+      console.error("User creation/update error:", userError);
+      // Use default user data if user operations fail
+      user = { first_name: "Admin", last_name: "User", username: null };
     }
     
     // Use actual user name from Clerk or database
     const authorName = clerkUser ? 
       `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 
       clerkUser.username || 
-      user.first_name || 
       'User' : 
       `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
       user.username || 
       'User';
-
-    // Get or create category
-    let category = await prisma.category.findUnique({
-      where: { slug: categoryId }
-    });
-
-    if (!category) {
-      console.log("Creating new category:", categoryId);
-      category = await prisma.category.create({
-        data: {
-          name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1),
-          slug: categoryId,
-          description: `${categoryId} content`,
-          updated_at: new Date()
-        }
-      });
-    }
 
     const article = await prisma.article.create({
       data: {
@@ -131,7 +120,7 @@ export async function createArticle(formData: FormData) {
         pros: pros ? [pros] : [],
         cons: cons ? [cons] : [],
         verdict: verdict || null,
-        published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" ? new Date(formData.get("scheduledDate") as string || Date.now()) : null,
+        published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" ? new Date(scheduledDate || Date.now()) : null,
         meta_title: metaTitle || title,
         meta_description: metaDescription || excerpt || title,
         meta_keywords: metaKeywords || null,
