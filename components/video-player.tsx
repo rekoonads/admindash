@@ -88,15 +88,31 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
         )}
       </div>
       
-      {/* Mobile-friendly controls overlay */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2 sm:p-4 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+      {/* Custom video overlay */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 sm:p-4 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
         <div className="flex items-center justify-between text-white text-xs sm:text-sm">
-          <span className="truncate">Video Player</span>
+          <span className="truncate font-medium">KOODOS Gaming</span>
           <div className="flex items-center gap-2">
-            <span className="bg-black/50 px-2 py-1 rounded">HD</span>
+            <span className="bg-red-600 px-2 py-1 rounded text-xs font-bold">LIVE</span>
           </div>
         </div>
       </div>
+      
+      {/* Remove YouTube UI elements */}
+      <style jsx>{`
+        video::-webkit-media-controls-panel {
+          background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+        }
+        .ytp-chrome-top,
+        .ytp-show-cards-title,
+        .ytp-ce-element,
+        .ytp-cards-teaser,
+        .ytp-endscreen-element,
+        .ytp-watermark,
+        .ytp-chrome-top-buttons {
+          display: none !important;
+        }
+      `}</style>
     </div>
   )
 }

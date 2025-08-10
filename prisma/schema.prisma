@@ -19,6 +19,8 @@ model User {
   is_active  Boolean   @default(true)
   created_at DateTime  @default(now())
   updated_at DateTime
+  comments   Comment[]
+  reactions  reactions[]
 
   @@index([clerk_id])
   @@index([email])
@@ -124,14 +126,15 @@ model Comment {
   author         String
   email          String?
   website        String?
-  is_approved    Boolean   @default(false)
+  is_approved    Boolean   @default(true)
   article_id     String
   parent_id      String?
   created_at     DateTime  @default(now())
   updated_at     DateTime
   likes          Int       @default(0)
-  user_id        String?
+  user_id        String
   articles       Article   @relation(fields: [article_id], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   comments       Comment?  @relation("commentsTocomments", fields: [parent_id], references: [id])
   other_comments Comment[] @relation("commentsTocomments")
 
@@ -211,12 +214,13 @@ model games {
 }
 
 model reactions {
-  id         String        @id
+  id         String        @id @default(cuid())
   type       reaction_type
   user_id    String
   article_id String
   created_at DateTime      @default(now())
   articles   Article       @relation(fields: [article_id], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, article_id, type])
   @@index([article_id])
