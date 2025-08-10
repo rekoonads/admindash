@@ -36,10 +36,7 @@ export async function GET(request: NextRequest) {
     // Get articles by category
     const articlesByCategory = await prisma.article.groupBy({
       by: ['categoryId'],
-      _count: { id: true },
-      include: {
-        category: { select: { name: true } }
-      }
+      _count: { id: true }
     })
 
     return NextResponse.json({

@@ -105,12 +105,13 @@ export function ContentEditor({
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
       formData.append("author", author);
-      formData.append("category", category);
+      formData.append("categoryId", category);
+      formData.append("type", type === "News Article" ? "NEWS" : "ARTICLE");
       formData.append("status", saveStatus);
       formData.append("tags", tags);
-      formData.append("featuredImage", featuredImage);
-      formData.append("videoUrl", videoUrl);
-      formData.append("thumbnail", thumbnail);
+      if (featuredImage) formData.append("featuredImage", featuredImage);
+      if (videoUrl) formData.append("videoUrl", videoUrl);
+      if (thumbnail) formData.append("thumbnail", thumbnail);
       
       // Set image field for video content
       if (videoUrl) {
