@@ -286,3 +286,57 @@ export async function deletePost(id: string) {
     throw error;
   }
 }
+
+export async function getBanners() {
+  try {
+    const banners = await (prisma.article as any).findMany({
+      where: {
+        featured: true,
+        published: true,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        featuredImage: true,
+        videoUrl: true,
+        thumbnail: true,
+        createdAt: true,
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 5,
+    });
+    return banners;
+  } catch (error) {
+    console.error('Error in getBanners:', error);
+    return [];
+  }
+}
+
+export async function getPostBySlug(slug: string) {
+  return getArticleBySlug(slug);
+}
+
+export async function incrementPostViews(id: string) {
+  try {
+    await (prisma.article as any).update({
+      where: { id },
+      data: { views: { increment: 1 } },
+    });
+  } catch (error) {
+    console.error('Error in incrementPostViews:', error);
+  }
+}
+
+export async function getPublishedPosts(categorySlug?: string) {
+  return getPublishedArticles(categorySlug);
+}
