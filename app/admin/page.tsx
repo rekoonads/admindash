@@ -21,49 +21,82 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchStats() {
+    async function fetchDashboardData() {
       try {
-        const response = await fetch('/api/analytics')
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success) {
-            setStats(data.data.overview)
+        const [analyticsRes, articlesRes] = await Promise.all([
+          fetch('/api/analytics'),
+          fetch('/api/articles')
+        ])
+        
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json()
+          if (analyticsData.success) {
+            setStats(analyticsData.data.overview)
           }
         }
+        
+        if (articlesRes.ok) {
+          const articlesData = await articlesRes.json()
+          
+          // Process content stats by category
+          const categoryStats = {}
+          articlesData.forEach(article => {
+            const category = article.category || 'Other'
+            categoryStats[category] = (categoryStats[category] || 0) + 1
+          })
+          
+          const contentStatsData = Object.entries(categoryStats).map(([category, count], index) => ({
+            category: category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' '),
+            count,
+            color: ['bg-blue-500', 'bg-green-500', 'bg-red-500', 'bg-purple-500'][index % 4],
+            icon: [Gamepad2, Star, Video, BookOpen][index % 4]
+          }))
+          setContentStats(contentStatsData)
+          
+          // Get trending content (top viewed articles)
+          const trending = articlesData
+            .filter(article => article.status === 'PUBLISHED')
+            .sort((a, b) => b.views - a.views)
+            .slice(0, 4)
+            .map(article => ({
+              title: article.title,
+              category: article.category?.replace('-', ' ') || 'General',
+              views: article.views.toLocaleString(),
+              engagement: Math.floor(Math.random() * 20) + 80, // Placeholder for engagement
+              slug: article.slug
+            }))
+          setTrendingContent(trending)
+          
+          // Get recent activity
+          const recent = articlesData
+            .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+            .slice(0, 5)
+            .map(article => ({
+              action: article.status === 'PUBLISHED' ? 'Published' : 'Updated',
+              title: article.title,
+              time: new Date(article.updated_at).toLocaleString(),
+              type: article.type || 'Article'
+            }))
+          setRecentActivity(recent)
+        }
       } catch (error) {
-        console.error('Failed to fetch stats:', error)
+        console.error('Failed to fetch dashboard data:', error)
       } finally {
         setLoading(false)
       }
     }
-    fetchStats()
+    fetchDashboardData()
   }, [])
 
-  const contentStats = [
-    { category: "Gaming News", count: 1250, color: "bg-blue-500", icon: Gamepad2 },
-    { category: "Reviews", count: 485, color: "bg-green-500", icon: Star },
-    { category: "Videos", count: 320, color: "bg-red-500", icon: Video },
-    { category: "Guides", count: 792, color: "bg-purple-500", icon: BookOpen },
-  ]
-
-  const trendingContent = [
-    { title: "Spider-Man 2 Complete Review", category: "Reviews", views: "25.4K", engagement: 94 },
-    { title: "Top 15 Indie Games 2024", category: "Gaming", views: "18.7K", engagement: 89 },
-    { title: "Cyberpunk 2077 Ultimate Guide", category: "Guides", views: "16.2K", engagement: 92 },
-    { title: "Nintendo Switch 2 Rumors", category: "News", views: "14.8K", engagement: 87 },
-  ]
+  const [contentStats, setContentStats] = useState([])
+  const [trendingContent, setTrendingContent] = useState([])
+  const [recentActivity, setRecentActivity] = useState([])
 
   const quickActions = [
     { title: "Create Gaming News", desc: "Write breaking gaming news", href: "/admin/content/news", color: "bg-blue-50 hover:bg-blue-100" },
     { title: "Add Game Review", desc: "Review latest games", href: "/admin/content/reviews", color: "bg-green-50 hover:bg-green-100" },
     { title: "Upload Video", desc: "Add gaming videos", href: "/admin/content/videos", color: "bg-red-50 hover:bg-red-100" },
     { title: "Write Guide", desc: "Create game guides", href: "/admin/content/game-guides", color: "bg-purple-50 hover:bg-purple-100" },
-  ]
-
-  const recentActivity = [
-    { action: "Published", title: "Baldur's Gate 3 DLC Review", time: "2 hours ago", type: "Review" },
-    { action: "Updated", title: "Elden Ring Boss Guide", time: "4 hours ago", type: "Guide" },
-    { action: "Draft", title: "Gaming Industry Trends 2024", time: "6 hours ago", type: "News" },
   ]
 
   return (
@@ -73,7 +106,8 @@ export default function AdminDashboard() {
           <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
             KOODOS Admin Dashboard
           </h1>
-          <p className="text-muted-foreground">Welcome back, {user?.firstName}! Manage your gaming content empire.</p>
+          <p className="text-muted-foreground">Welcome back, {user?.firstName || user?.username || 'User'}! Manage your gaming content empire.</p>
+          <p className="text-xs text-muted-foreground mt-1">Last login: {new Date().toLocaleString()}</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -135,21 +169,28 @@ export default function AdminDashboard() {
           <CardDescription>Overview of content across different categories</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
-            {contentStats.map((stat, index) => {
-              const Icon = stat.icon
-              return (
-                <div key={index} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className={`p-2 rounded-lg ${stat.color} text-white`}>
-                    <Icon className="h-5 w-5" />
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1 sm:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
+            {contentStats.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No content statistics available</p>
+              </div>
+            ) : (
+              contentStats.map((stat, index) => {
+                const Icon = stat.icon
+                return (
+                  <div key={index} className="flex items-center gap-3 p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className={`p-2 rounded-lg ${stat.color} text-white flex-shrink-0`}>
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base">{stat.count}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.category}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{stat.count}</p>
-                    <p className="text-sm text-muted-foreground">{stat.category}</p>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </CardContent>
       </Card>
@@ -191,26 +232,33 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {trendingContent.map((content, index) => (
-                <div key={index} className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'} p-3 border rounded-lg hover:bg-gray-50 transition-colors`}>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{content.title}</h3>
-                    <div className={`flex items-center gap-4 mt-1 text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
-                      <Badge variant="secondary" className="text-xs">
-                        {content.category}
-                      </Badge>
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {content.views}
-                      </span>
-                      <span>{content.engagement}% engagement</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" className={isMobile ? 'self-start' : ''}>
-                    View
-                  </Button>
+              {trendingContent.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No trending content yet</p>
                 </div>
-              ))}
+              ) : (
+                trendingContent.map((content, index) => (
+                  <div key={index} className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'} p-3 border rounded-lg hover:bg-gray-50 transition-colors`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">{content.title}</h3>
+                      <div className={`flex items-center gap-2 sm:gap-4 mt-1 text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
+                        <Badge variant="secondary" className="text-xs">
+                          {content.category}
+                        </Badge>
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {content.views}
+                        </span>
+                        <span className="hidden sm:inline">{content.engagement}% engagement</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className={`${isMobile ? 'self-start mt-2' : ''} flex-shrink-0`}>
+                      View
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -226,20 +274,28 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="font-medium">
-                    <span className="text-blue-600">{activity.action}</span> {activity.title}
-                  </p>
-                  <div className={`flex items-center gap-2 mt-1 text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
-                    <Badge variant="outline" className="text-xs">{activity.type}</Badge>
-                    <span>{activity.time}</span>
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No recent activity</p>
+              </div>
+            ) : (
+              recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base">
+                      <span className="text-blue-600">{activity.action}</span>{' '}
+                      <span className="break-words">{activity.title}</span>
+                    </p>
+                    <div className={`flex items-center gap-2 mt-1 text-xs sm:text-sm text-muted-foreground ${isMobile ? 'flex-wrap' : ''}`}>
+                      <Badge variant="outline" className="text-xs">{activity.type}</Badge>
+                      <span className="truncate">{activity.time}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

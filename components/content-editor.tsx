@@ -37,6 +37,7 @@ import type { Post } from "@/lib/prisma";
 import Image from "next/image";
 import { TiptapEditor } from "./tiptap-editor";
 import { CloudinaryImageUpload } from "./cloudinary-image-upload";
+import { useUser } from "@clerk/nextjs";
 
 interface ContentEditorProps {
   type: string;
@@ -72,12 +73,24 @@ export function ContentEditor({
   const [featuredImage, setFeaturedImage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [thumbnail, setThumbnail] = useState("");
-  const [author] = useState("Admin User");
+  const [author, setAuthor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [scheduleTime, setScheduleTime] = useState("09:00");
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [metaKeywords, setMetaKeywords] = useState("");
 
+  const { user } = useUser();
+  
+  useEffect(() => {
+    // Set author from user context
+    if (user) {
+      setAuthor(`${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'User');
+    }
+  }, [user]);
+  
   useEffect(() => {
     if (editingPost) {
       setTitle(editingPost.title);
@@ -89,6 +102,9 @@ export function ContentEditor({
       setFeaturedImage(editingPost.featured_image || "");
       setVideoUrl(""); // Not in schema
       setThumbnail(""); // Not in schema
+      setMetaTitle(editingPost.meta_title || "");
+      setMetaDescription(editingPost.meta_description || "");
+      setMetaKeywords(editingPost.meta_keywords || "");
     }
   }, [editingPost]);
 
@@ -112,6 +128,15 @@ export function ContentEditor({
       if (featuredImage) formData.append("featuredImage", featuredImage);
       if (videoUrl) formData.append("videoUrl", videoUrl);
       if (thumbnail) formData.append("thumbnail", thumbnail);
+      formData.append("metaTitle", metaTitle);
+      formData.append("metaDescription", metaDescription);
+      formData.append("metaKeywords", metaKeywords);
+      if (status === "SCHEDULED" && scheduleDate) {
+        const scheduledDateTime = new Date(scheduleDate);
+        const [hours, minutes] = scheduleTime.split(':');
+        scheduledDateTime.setHours(parseInt(hours), parseInt(minutes));
+        formData.append("scheduledDate", scheduledDateTime.toISOString());
+      }
       
       // Set image field for video content
       if (videoUrl) {
@@ -470,6 +495,42 @@ export function ContentEditor({
               <div className="space-y-2">
                 <Label>Author</Label>
                 <Input value={author} disabled />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">SEO Meta Tags</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label>Meta Title</Label>
+                <Input
+                  placeholder="SEO title for search engines"
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  maxLength={60}
+                />
+                <p className="text-xs text-muted-foreground">{metaTitle.length}/60 characters</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Meta Description</Label>
+                <Input
+                  placeholder="Brief description for search results"
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  maxLength={160}
+                />
+                <p className="text-xs text-muted-foreground">{metaDescription.length}/160 characters</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Meta Keywords</Label>
+                <Input
+                  placeholder="gaming, review, guide (comma separated)"
+                  value={metaKeywords}
+                  onChange={(e) => setMetaKeywords(e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>

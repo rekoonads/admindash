@@ -30,6 +30,10 @@ export async function createArticle(formData: FormData) {
     const pros = (formData.get("pros") as string) || "";
     const cons = (formData.get("cons") as string) || "";
     const verdict = (formData.get("verdict") as string) || "";
+    const scheduledDate = formData.get("scheduledDate") as string;
+    const metaTitle = (formData.get("metaTitle") as string) || "";
+    const metaDescription = (formData.get("metaDescription") as string) || "";
+    const metaKeywords = (formData.get("metaKeywords") as string) || "";
 
     console.log("Creating article:", { title, categoryId, type, status });
 
@@ -69,8 +73,15 @@ export async function createArticle(formData: FormData) {
           last_name: clerkUser?.lastName || "Name",
           username: clerkUser?.username || null,
           role: "ADMIN",
+          last_login: new Date(),
           updated_at: new Date()
         }
+      });
+    } else {
+      // Update last login for existing user
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { last_login: new Date() }
       });
     }
 
@@ -109,7 +120,10 @@ export async function createArticle(formData: FormData) {
         pros: pros ? [pros] : [],
         cons: cons ? [cons] : [],
         verdict: verdict || null,
-        published_at: status === "PUBLISHED" ? new Date() : null,
+        published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" ? new Date(formData.get("scheduledDate") as string || Date.now()) : null,
+        meta_title: metaTitle || title,
+        meta_description: metaDescription || excerpt || title,
+        meta_keywords: metaKeywords || null,
         updated_at: new Date()
       }
     });
@@ -141,8 +155,9 @@ export async function getArticles(filters?: {
     
     if (filters?.search) {
       where.OR = [
-        { title: { contains: filters.search } },
-        { content: { contains: filters.search } }
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { content: { contains: filters.search, mode: 'insensitive' } },
+        { author: { contains: filters.search, mode: 'insensitive' } }
       ];
     }
 

@@ -9,6 +9,12 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Cloudinary is configured
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Cloudinary not configured')
+      return NextResponse.json({ error: 'Upload service not configured' }, { status: 500 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -26,8 +32,12 @@ export async function POST(request: NextRequest) {
           resource_type: 'auto',
         },
         (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
+          if (error) {
+            console.error('Cloudinary error:', error)
+            reject(error)
+          } else {
+            resolve(result)
+          }
         }
       ).end(buffer)
     })
@@ -35,6 +45,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: (result as any).secure_url })
   } catch (error) {
     console.error('Upload error:', error)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Upload failed' 
+    }, { status: 500 })
   }
 }
