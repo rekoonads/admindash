@@ -7,13 +7,16 @@ import { auth } from "@clerk/nextjs/server";
 export async function createArticle(formData: FormData) {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) {
+      console.error("Unauthorized: No user ID");
+      throw new Error("Unauthorized");
+    }
 
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const categoryId = formData.get("categoryId") as string;
-    const type = (formData.get("type") as string) || "ARTICLE";
+    const categoryId = (formData.get("categoryId") as string) || "gaming";
+    const type = (formData.get("type") as string) || "NEWS";
     const status = (formData.get("status") as string) || "DRAFT";
     const image = (formData.get("image") as string) || "";
     const videoUrl = (formData.get("videoUrl") as string) || "";
@@ -26,15 +29,26 @@ export async function createArticle(formData: FormData) {
     const cons = (formData.get("cons") as string) || "";
     const verdict = (formData.get("verdict") as string) || "";
 
-    if (!title || !content) {
+    console.log("Creating article:", { title, categoryId, type, status });
+
+    if (!title?.trim() || !content?.trim()) {
+      console.error("Missing required fields:", { title: !!title, content: !!content });
       throw new Error("Title and content are required");
     }
 
-    const slug = title
+    const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
       .substring(0, 50);
+    
+    // Ensure unique slug
+    let slug = baseSlug;
+    let counter = 1;
+    while (await prisma.article.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     // Get or create user
     let user = await prisma.user.findUnique({
@@ -42,6 +56,7 @@ export async function createArticle(formData: FormData) {
     });
 
     if (!user) {
+      console.log("Creating new user for:", userId);
       user = await prisma.user.create({
         data: {
           clerkId: userId,
@@ -54,15 +69,16 @@ export async function createArticle(formData: FormData) {
 
     // Get or create category
     let category = await prisma.category.findUnique({
-      where: { slug: categoryId || "gaming" }
+      where: { slug: categoryId }
     });
 
     if (!category) {
+      console.log("Creating new category:", categoryId);
       category = await prisma.category.create({
         data: {
-          name: "Gaming",
-          slug: "gaming",
-          description: "Gaming content"
+          name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1),
+          slug: categoryId,
+          description: `${categoryId} content`
         }
       });
     }
@@ -92,46 +108,14 @@ export async function createArticle(formData: FormData) {
       }
     });
 
-    // Create media entries if provided
-    if (videoUrl) {
-      await prisma.media.create({
-        data: {
-          url: videoUrl,
-          type: "VIDEO",
-          alt: title,
-          articleId: article.id
-        }
-      });
-    }
-    
-    if (thumbnail) {
-      await prisma.media.create({
-        data: {
-          url: thumbnail,
-          type: "IMAGE",
-          alt: `${title} thumbnail`,
-          articleId: article.id
-        }
-      });
-    }
-    
-    if (featuredImage) {
-      await prisma.media.create({
-        data: {
-          url: featuredImage,
-          type: "IMAGE",
-          alt: title,
-          articleId: article.id
-        }
-      });
-    }
+    console.log("Article created successfully:", article.id);
 
     revalidatePath("/admin/content");
     revalidatePath("/");
     return article;
   } catch (error) {
     console.error("Error in createArticle:", error);
-    throw error;
+    throw new Error(`Failed to create article: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -240,96 +224,6 @@ export async function updateArticleStatus(id: string, status: string) {
     revalidatePath("/");
   } catch (error) {
     console.error("Error in updateArticleStatus:", error);
-    throw error;
-  }
-}
-
-export async function createVideoContent(formData: FormData) {
-  try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-    const videoUrl = formData.get("videoUrl") as string;
-    const category = (formData.get("category") as string) || "gaming";
-    const platform = (formData.get("platform") as string) || "";
-    const status = (formData.get("status") as string) || "DRAFT";
-
-    if (!title || !videoUrl) {
-      throw new Error("Title and video URL are required");
-    }
-
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-    // Get or create user
-    let user = await prisma.user.findUnique({
-      where: { clerkId: userId }
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          email: "admin@koodos.com",
-          name: "Admin User",
-          role: "ADMIN"
-        }
-      });
-    }
-
-    // Get or create category
-    let categoryRecord = await prisma.category.findUnique({
-      where: { slug: category }
-    });
-
-    if (!categoryRecord) {
-      categoryRecord = await prisma.category.create({
-        data: {
-          name: category.charAt(0).toUpperCase() + category.slice(1),
-          slug: category,
-          description: `${category} content`
-        }
-      });
-    }
-
-    const article = await prisma.article.create({
-      data: {
-        title,
-        slug,
-        content: description,
-        excerpt: description.substring(0, 200),
-        type: "VIDEO",
-        status: status as any,
-        platform: platform || null,
-        publishedAt: status === "PUBLISHED" ? new Date() : null,
-        authorId: user.id,
-        categoryId: categoryRecord.id
-      },
-      include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true, slug: true } }
-      }
-    });
-
-    // Create media entry for video
-    await prisma.media.create({
-      data: {
-        url: videoUrl,
-        type: "VIDEO",
-        alt: title,
-        articleId: article.id
-      }
-    });
-
-    revalidatePath("/admin/content/videos");
-    revalidatePath("/");
-    return article;
-  } catch (error) {
-    console.error("Error in createVideoContent:", error);
     throw error;
   }
 }
