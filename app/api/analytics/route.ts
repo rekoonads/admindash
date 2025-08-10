@@ -7,22 +7,22 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || '30' // days
 
     // Get article stats
-    const totalArticles = await prisma.article.count()
-    const publishedArticles = await prisma.article.count({
-      where: { status: 'PUBLISHED' }
+    const totalArticles = await (prisma.article as any).count()
+    const publishedArticles = await (prisma.article as any).count({
+      where: { published: true }
     })
-    const draftArticles = await prisma.article.count({
-      where: { status: 'DRAFT' }
+    const draftArticles = await (prisma.article as any).count({
+      where: { published: false }
     })
 
     // Get total views
-    const totalViews = await prisma.article.aggregate({
+    const totalViews = await (prisma.article as any).aggregate({
       _sum: { views: true }
     })
 
     // Get top articles by views
-    const topArticles = await prisma.article.findMany({
-      where: { status: 'PUBLISHED' },
+    const topArticles = await (prisma.article as any).findMany({
+      where: { published: true },
       orderBy: { views: 'desc' },
       take: 10,
       select: {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get articles by category
-    const articlesByCategory = await prisma.article.groupBy({
+    const articlesByCategory = await (prisma.article as any).groupBy({
       by: ['categoryId'],
       _count: { id: true }
     })
