@@ -18,9 +18,12 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
+    console.log('Fetching article with slug:', params.slug)
     const article = await getArticleBySlug(params.slug)
+    console.log('Article found:', !!article)
     
     if (!article) {
+      console.log('Article not found for slug:', params.slug)
       return NextResponse.json({ error: 'Article not found' }, { 
         status: 404,
         headers: {
@@ -32,7 +35,24 @@ export async function GET(
       })
     }
     
-    return NextResponse.json(article, {
+    // Transform the article to match expected format
+    const transformedArticle = {
+      id: article.id,
+      title: article.title,
+      excerpt: article.excerpt,
+      content: article.content,
+      featuredImage: article.featured_image,
+      videoUrl: article.video_url,
+      category: article.category,
+      author: article.author,
+      views: article.views,
+      slug: article.slug,
+      tags: article.tags || [],
+      createdAt: article.created_at,
+      updatedAt: article.updated_at
+    }
+    
+    return NextResponse.json(transformedArticle, {
       headers: {
         'Access-Control-Allow-Origin': 'https://koodos.in',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
