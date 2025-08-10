@@ -119,6 +119,8 @@ ContextMenuShortcut.displayName = "ContextMenuShortcut"
 
 const ContextMenuSub = ContextMenuPrimitive.Sub
 
+const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup
+
 const ContextMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubTrigger> & {
@@ -164,6 +166,7 @@ export {
   ContextMenuItem,
   ContextMenuCheckboxItem,
   ContextMenuRadioItem,
+  ContextMenuRadioGroup,
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuShortcut,
