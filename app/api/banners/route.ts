@@ -3,29 +3,23 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const banners = await (prisma.article as any).findMany({
+    const banners = await prisma.article.findMany({
       where: {
-        featured: true,
-        published: true,
+        is_featured: true,
+        status: 'PUBLISHED',
       },
       select: {
         id: true,
         title: true,
         slug: true,
         excerpt: true,
-        featuredImage: true,
-        videoUrl: true,
-        thumbnail: true,
-        createdAt: true,
-        category: {
-          select: {
-            name: true,
-            slug: true,
-          },
-        },
+        featured_image: true,
+        video_url: true,
+        created_at: true,
+        category: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        created_at: 'desc',
       },
       take: 5,
     });
