@@ -62,8 +62,9 @@ export async function createArticle(formData: FormData) {
       where: { clerk_id: actualUserId }
     });
 
+    const clerkUser = await currentUser();
+    
     if (!user) {
-      const clerkUser = await currentUser();
       console.log("Creating new user for:", actualUserId);
       user = await prisma.user.create({
         data: {
@@ -84,6 +85,16 @@ export async function createArticle(formData: FormData) {
         data: { last_login: new Date() }
       });
     }
+    
+    // Use actual user name from Clerk or database
+    const authorName = clerkUser ? 
+      `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 
+      clerkUser.username || 
+      user.first_name || 
+      'User' : 
+      `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
+      user.username || 
+      'User';
 
     // Get or create category
     let category = await prisma.category.findUnique({
@@ -113,7 +124,7 @@ export async function createArticle(formData: FormData) {
         type: type as any,
         status: status as any,
         category: categoryId,
-        author: `${user.first_name || "Koodos"} ${user.last_name || "Team"}`,
+        author: authorName,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],
         review_score: rating ? parseFloat(rating) : null,
