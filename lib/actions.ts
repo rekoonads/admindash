@@ -56,12 +56,13 @@ export async function createArticle(formData: FormData) {
     });
 
     if (!user) {
+      const { currentUser } = await auth();
       console.log("Creating new user for:", userId);
       user = await prisma.user.create({
         data: {
           clerkId: userId,
-          email: "admin@koodos.com",
-          name: "Admin User",
+          email: currentUser?.emailAddresses[0]?.emailAddress || "admin@koodos.com",
+          name: currentUser?.fullName || currentUser?.firstName || "Koodos Team",
           role: "ADMIN"
         }
       });

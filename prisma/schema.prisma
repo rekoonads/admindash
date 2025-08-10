@@ -164,6 +164,38 @@ enum ArticleType {
   LIST
 }
 
+model Banner {
+  id        String   @id @default(cuid())
+  page      String
+  position  String
+  title     String
+  content   String?
+  imageUrl  String?
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  excerpt   String?
+  author    String
+  status    String   @default("DRAFT")
+  category  String
+  slug      String   @unique
+  views     Int      @default(0)
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("posts")
+}
+
 enum MediaType {
   IMAGE
   VIDEO
