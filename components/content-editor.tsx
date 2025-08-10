@@ -83,10 +83,10 @@ export function ContentEditor({
       setTitle(editingPost.title);
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
-      setCategory(editingPost.category?.slug || "latest-news");
+      setCategory(editingPost.category || "latest-news");
       setStatus(editingPost.status as any);
       setTags(""); // Tags not in current schema
-      setFeaturedImage(editingPost.image || "");
+      setFeaturedImage(editingPost.featured_image || "");
       setVideoUrl(""); // Not in schema
       setThumbnail(""); // Not in schema
     }

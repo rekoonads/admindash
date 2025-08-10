@@ -248,7 +248,7 @@ export default function NewsPage() {
                         {post.title}
                       </div>
                     </TableCell>
-                    <TableCell>{post.author?.name || "Unknown"}</TableCell>
+                    <TableCell>{post.author || "Unknown"}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -262,10 +262,10 @@ export default function NewsPage() {
                         {post.status.toLowerCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell>{post.category?.name || "Uncategorized"}</TableCell>
+                    <TableCell>{post.category || "Uncategorized"}</TableCell>
                     <TableCell>{post.views.toLocaleString()}</TableCell>
                     <TableCell>
-                      {new Date(post.createdAt).toLocaleDateString()}
+                      {new Date(post.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

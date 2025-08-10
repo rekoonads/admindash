@@ -55,17 +55,21 @@ export async function createArticle(formData: FormData) {
     // Get or create user
     const actualUserId = userId || "default-admin";
     let user = await prisma.user.findUnique({
-      where: { clerkId: actualUserId }
+      where: { clerk_id: actualUserId }
     });
 
     if (!user) {
+      const clerkUser = await currentUser();
       console.log("Creating new user for:", actualUserId);
       user = await prisma.user.create({
         data: {
-          clerkId: actualUserId,
-          email: "admin@koodos.com",
-          name: "Koodos Team",
-          role: "ADMIN"
+          clerk_id: actualUserId,
+          email: clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com",
+          first_name: clerkUser?.firstName || "User",
+          last_name: clerkUser?.lastName || "Name",
+          username: clerkUser?.username || null,
+          role: "ADMIN",
+          updated_at: new Date()
         }
       });
     }
@@ -81,7 +85,8 @@ export async function createArticle(formData: FormData) {
         data: {
           name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1),
           slug: categoryId,
-          description: `${categoryId} content`
+          description: `${categoryId} content`,
+          updated_at: new Date()
         }
       });
     }
@@ -97,7 +102,7 @@ export async function createArticle(formData: FormData) {
         type: type as any,
         status: status as any,
         category: categoryId,
-        author: user.name || "Koodos Team",
+        author: `${user.first_name || "Koodos"} ${user.last_name || "Team"}`,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],
         review_score: rating ? parseFloat(rating) : null,
@@ -105,6 +110,7 @@ export async function createArticle(formData: FormData) {
         cons: cons ? [cons] : [],
         verdict: verdict || null,
         published_at: status === "PUBLISHED" ? new Date() : null,
+        updated_at: new Date()
       }
     });
 
@@ -158,17 +164,13 @@ export async function getPublishedArticles(categorySlug?: string, type?: string)
     const where: any = { status: "PUBLISHED" };
     
     if (categorySlug) {
-      where.category = { slug: categorySlug };
+      where.category = categorySlug;
     }
     if (type) where.type = type;
 
     const articles = await prisma.article.findMany({
       where,
-      include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true, slug: true } }
-      },
-      orderBy: { publishedAt: "desc" },
+      orderBy: { published_at: "desc" },
       take: 20,
     });
 
@@ -182,17 +184,16 @@ export async function getPublishedArticles(categorySlug?: string, type?: string)
 export async function getArticleBySlug(slug: string) {
   try {
     const article = await prisma.article.findUnique({
-      where: { slug },
-      include: {
-        author: { select: { name: true, email: true } },
-        category: { select: { name: true, slug: true } }
-      }
+      where: { slug }
     });
 
     if (article) {
       await prisma.article.update({
         where: { id: article.id },
-        data: { views: { increment: 1 } },
+        data: { 
+          views: { increment: 1 },
+          updated_at: new Date()
+        },
       });
     }
 
@@ -287,7 +288,7 @@ export async function getBanners() {
   try {
     const banners = await prisma.article.findMany({
       where: {
-        featured: true,
+        is_featured: true,
         status: "PUBLISHED",
       },
       select: {
@@ -295,17 +296,12 @@ export async function getBanners() {
         title: true,
         slug: true,
         excerpt: true,
-        image: true,
-        createdAt: true,
-        category: {
-          select: {
-            name: true,
-            slug: true,
-          },
-        },
+        featured_image: true,
+        created_at: true,
+        category: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        created_at: 'desc',
       },
       take: 5,
     });
