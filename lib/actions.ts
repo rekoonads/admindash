@@ -290,19 +290,17 @@ export async function deletePost(id: string) {
 
 export async function getBanners() {
   try {
-    const banners = await (prisma.article as any).findMany({
+    const banners = await prisma.article.findMany({
       where: {
         featured: true,
-        published: true,
+        status: "PUBLISHED",
       },
       select: {
         id: true,
         title: true,
         slug: true,
         excerpt: true,
-        featuredImage: true,
-        videoUrl: true,
-        thumbnail: true,
+        image: true,
         createdAt: true,
         category: {
           select: {
