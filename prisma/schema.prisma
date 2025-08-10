@@ -17,6 +17,7 @@ model User {
   avatar     String?
   role       user_role @default(EDITOR)
   is_active  Boolean   @default(true)
+  last_login DateTime?
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   comments   Comment[]
@@ -80,6 +81,7 @@ model Article {
   is_sponsored     Boolean        @default(false)
   meta_description String?
   meta_title       String?
+  meta_keywords    String?
   pros             String[]       @default([])
   publisher        String?
   shares           Int            @default(0)

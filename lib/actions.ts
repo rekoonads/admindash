@@ -123,8 +123,7 @@ export async function createArticle(formData: FormData) {
         published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" ? new Date(scheduledDate || Date.now()) : null,
         meta_title: metaTitle || title,
         meta_description: metaDescription || excerpt || title,
-        meta_keywords: metaKeywords || null,
-        updated_at: new Date()
+        meta_keywords: metaKeywords || null
       }
     });
 
