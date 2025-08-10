@@ -13,6 +13,11 @@
     "db:studio": "prisma studio",
     "deploy": "npm run build && npm run start"
   },
+  "overrides": {
+    "@uploadthing/react": {
+      "react": "$react"
+    }
+  },
   "dependencies": {
     "@clerk/nextjs": "^6.29.0",
     "@hookform/resolvers": "^3.9.1",
