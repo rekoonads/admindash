@@ -16,6 +16,9 @@ export async function createArticle(formData: FormData) {
     const type = (formData.get("type") as string) || "ARTICLE";
     const status = (formData.get("status") as string) || "DRAFT";
     const image = (formData.get("image") as string) || "";
+    const videoUrl = (formData.get("videoUrl") as string) || "";
+    const thumbnail = (formData.get("thumbnail") as string) || "";
+    const featuredImage = (formData.get("featuredImage") as string) || "";
     const platform = (formData.get("platform") as string) || "";
     const genre = (formData.get("genre") as string) || "";
     const rating = (formData.get("rating") as string) || "";
@@ -70,7 +73,7 @@ export async function createArticle(formData: FormData) {
         slug,
         content,
         excerpt: excerpt || null,
-        image: image || null,
+        image: image || videoUrl || featuredImage || null,
         type: type as any,
         status: status as any,
         platform: platform || null,
@@ -111,6 +114,17 @@ export async function createArticle(formData: FormData) {
         }
       });
     }
+    
+    if (featuredImage) {
+      await prisma.media.create({
+        data: {
+          url: featuredImage,
+          type: "IMAGE",
+          alt: title,
+          articleId: article.id
+        }
+      });
+    }
 
     revalidatePath("/admin/content");
     revalidatePath("/");
@@ -125,7 +139,9 @@ export async function getArticles(filters?: {
   status?: string;
   category?: string;
   type?: string;
+  platform?: string;
   search?: string;
+  limit?: number;
 }) {
   try {
     const where: any = {};
@@ -147,6 +163,7 @@ export async function getArticles(filters?: {
         category: { select: { name: true, slug: true } }
       },
       orderBy: { createdAt: "desc" },
+      take: filters?.limit || undefined,
     });
 
     return articles;

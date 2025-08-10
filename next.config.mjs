@@ -16,6 +16,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "cloudinary.com",
       },
+      {
+        protocol: "https",
+        hostname: "koodos.in",
+      },
+      {
+        protocol: "https",
+        hostname: "admin.koodos.in",
+      },
     ],
     unoptimized: true,
   },

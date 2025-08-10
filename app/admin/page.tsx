@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Eye, TrendingUp, FileText, Clock, Gamepad2, Star, Video, BookOpen, Zap } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -11,13 +12,32 @@ import { useUser } from "@clerk/nextjs"
 export default function AdminDashboard() {
   const isMobile = useIsMobile()
   const { user } = useUser()
+  const [stats, setStats] = useState({
+    totalArticles: 0,
+    publishedArticles: 0,
+    draftArticles: 0,
+    totalViews: 0
+  })
+  const [loading, setLoading] = useState(true)
 
-  const siteOverview = {
-    totalArticles: 2847,
-    monthlyViews: "1.2M",
-    activeUsers: "45.8K",
-    engagement: 87,
-  }
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/analytics')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            setStats(data.data.overview)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
 
   const contentStats = [
     { category: "Gaming News", count: 1250, color: "bg-blue-500", icon: Gamepad2 },
@@ -70,8 +90,8 @@ export default function AdminDashboard() {
             <FileText className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{siteOverview.totalArticles.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+127 this month</p>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.totalArticles.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">{stats.publishedArticles} published</p>
           </CardContent>
         </Card>
 
@@ -81,8 +101,8 @@ export default function AdminDashboard() {
             <Eye className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{siteOverview.monthlyViews}</div>
-            <p className="text-xs text-muted-foreground">+23.1% from last month</p>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.totalViews.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total views</p>
           </CardContent>
         </Card>
 
@@ -92,8 +112,8 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{siteOverview.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">+8.2% this week</p>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.draftArticles}</div>
+            <p className="text-xs text-muted-foreground">Draft articles</p>
           </CardContent>
         </Card>
 
@@ -103,8 +123,8 @@ export default function AdminDashboard() {
             <TrendingUp className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{siteOverview.engagement}%</div>
-            <Progress value={siteOverview.engagement} className="mt-2" />
+            <div className="text-2xl font-bold">{loading ? '...' : Math.round((stats.publishedArticles / stats.totalArticles) * 100)}%</div>
+            <Progress value={stats.totalArticles > 0 ? (stats.publishedArticles / stats.totalArticles) * 100 : 0} className="mt-2" />
           </CardContent>
         </Card>
       </div>

@@ -10,12 +10,24 @@ export async function GET(request: NextRequest) {
       type: searchParams.get('type') || undefined,
       platform: searchParams.get('platform') || undefined,
       search: searchParams.get('search') || undefined,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined,
     }
 
     const articles = await getArticles(filters)
-    return NextResponse.json(articles)
+    
+    // Return in consistent format
+    return NextResponse.json({
+      success: true,
+      articles: articles,
+      total: articles.length
+    })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 })
+    console.error('API Error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to fetch articles',
+      articles: []
+    }, { status: 500 })
   }
 }
 
@@ -23,8 +35,15 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const article = await createArticle(formData)
-    return NextResponse.json(article)
+    return NextResponse.json({
+      success: true,
+      article: article
+    })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create article' }, { status: 500 })
+    console.error('API Error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to create article' 
+    }, { status: 500 })
   }
 }
