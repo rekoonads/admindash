@@ -129,7 +129,7 @@ export function ContentEditor({
       formData.append("author", author);
       formData.append("categoryId", category);
       console.log("Selected category:", category);
-      formData.append("type", type === "News Article" ? "NEWS" : "ARTICLE");
+      formData.append("type", type === "News Article" ? "NEWS" : type.includes("Review") ? "REVIEW" : "ARTICLE");
       formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);
       formData.append("tags", tags);
       if (featuredImage) formData.append("featuredImage", featuredImage);
