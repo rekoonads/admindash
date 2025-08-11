@@ -35,6 +35,8 @@ export async function createArticle(formData: FormData) {
     const metaDescription = (formData.get("metaDescription") as string) || "";
     const metaKeywords = (formData.get("metaKeywords") as string) || "";
     const isFeatured = formData.get("isFeatured") === "true";
+    const purchaseLink = (formData.get("purchaseLink") as string) || "";
+    const price = (formData.get("price") as string) || "";
 
     console.log("Creating article:", { title, categoryId, type, status, category: categoryId });
 
@@ -127,7 +129,9 @@ export async function createArticle(formData: FormData) {
         meta_title: metaTitle || title,
         meta_description: metaDescription || excerpt || title,
         meta_keywords: metaKeywords || null,
-        is_featured: isFeatured
+        is_featured: isFeatured,
+        purchase_link: purchaseLink || null,
+        price: price || null
       }
     });
 

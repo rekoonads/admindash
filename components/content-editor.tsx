@@ -82,6 +82,8 @@ export function ContentEditor({
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
+  const [purchaseLink, setPurchaseLink] = useState("");
+  const [price, setPrice] = useState("");
 
   const { user } = useUser();
   
@@ -107,6 +109,8 @@ export function ContentEditor({
       setMetaDescription(editingPost.meta_description || "");
       setMetaKeywords(editingPost.meta_keywords || "");
       setIsFeatured(editingPost.is_featured || false);
+      setPurchaseLink(editingPost.purchase_link || "");
+      setPrice(editingPost.price || "");
     }
   }, [editingPost]);
 
@@ -135,6 +139,8 @@ export function ContentEditor({
       formData.append("metaDescription", metaDescription);
       formData.append("metaKeywords", metaKeywords);
       formData.append("isFeatured", isFeatured.toString());
+      formData.append("purchaseLink", purchaseLink);
+      formData.append("price", price);
       if (status === "SCHEDULED" && scheduleDate) {
         const scheduledDateTime = new Date(scheduleDate);
         const [hours, minutes] = scheduleTime.split(':');
@@ -515,6 +521,26 @@ export function ContentEditor({
                 />
                 <Label htmlFor="featured">Feature on Homepage</Label>
               </div>
+              {type.includes("Review") && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Purchase Link</Label>
+                    <Input
+                      placeholder="https://store.steampowered.com/..."
+                      value={purchaseLink}
+                      onChange={(e) => setPurchaseLink(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Price</Label>
+                    <Input
+                      placeholder="$59.99"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

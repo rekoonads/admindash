@@ -87,6 +87,8 @@ model Article {
   shares           Int            @default(0)
   subcategory      String?
   verdict          String?
+  purchase_link    String?
+  price            String?
   platform         platform[]     @default([])
   genre            genre[]        @default([])
   comments         Comment[]
