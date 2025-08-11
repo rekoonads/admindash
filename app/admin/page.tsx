@@ -103,11 +103,21 @@ export default function AdminDashboard() {
     <div className="flex flex-1 flex-col gap-6">
       <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'}`}>
         <div>
-          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-            KOODOS Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">Welcome back, {user?.firstName || user?.username || 'User'}! Manage your gaming content empire.</p>
-          <p className="text-xs text-muted-foreground mt-1">Last login: {new Date().toLocaleString()}</p>
+          <div className="space-y-2">
+            <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold text-gray-900`}>
+              Welcome back, {user?.firstName || user?.username || 'User'}!
+            </h1>
+            <p className="text-sm text-gray-600">
+              Last login: {new Date().toLocaleDateString('en-US', { 
+                month: 'numeric', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              })}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">

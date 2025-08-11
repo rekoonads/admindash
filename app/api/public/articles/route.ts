@@ -20,8 +20,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category') || undefined
     const type = searchParams.get('type') || undefined
+    const featured = searchParams.get('featured') === 'true'
+    const limit = parseInt(searchParams.get('limit') || '20')
 
-    const articles = await getPublishedArticles(category, type)
+    const articles = await getPublishedArticles(category, type, featured, limit)
     
     return NextResponse.json(articles, {
       headers: {

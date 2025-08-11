@@ -81,6 +81,7 @@ export function ContentEditor({
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
+  const [isFeatured, setIsFeatured] = useState(false);
 
   const { user } = useUser();
   
@@ -105,6 +106,7 @@ export function ContentEditor({
       setMetaTitle(editingPost.meta_title || "");
       setMetaDescription(editingPost.meta_description || "");
       setMetaKeywords(editingPost.meta_keywords || "");
+      setIsFeatured(editingPost.is_featured || false);
     }
   }, [editingPost]);
 
@@ -122,8 +124,9 @@ export function ContentEditor({
       formData.append("excerpt", excerpt.trim());
       formData.append("author", author);
       formData.append("categoryId", category);
+      console.log("Selected category:", category);
       formData.append("type", type === "News Article" ? "NEWS" : "ARTICLE");
-      formData.append("status", saveStatus);
+      formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);
       formData.append("tags", tags);
       if (featuredImage) formData.append("featuredImage", featuredImage);
       if (videoUrl) formData.append("videoUrl", videoUrl);
@@ -131,6 +134,7 @@ export function ContentEditor({
       formData.append("metaTitle", metaTitle);
       formData.append("metaDescription", metaDescription);
       formData.append("metaKeywords", metaKeywords);
+      formData.append("isFeatured", isFeatured.toString());
       if (status === "SCHEDULED" && scheduleDate) {
         const scheduledDateTime = new Date(scheduleDate);
         const [hours, minutes] = scheduleTime.split(':');
@@ -500,6 +504,16 @@ export function ContentEditor({
               <div className="space-y-2">
                 <Label>Author</Label>
                 <Input value={author} disabled />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="featured">Feature on Homepage</Label>
               </div>
             </CardContent>
           </Card>

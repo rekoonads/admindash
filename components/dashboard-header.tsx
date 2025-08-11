@@ -40,8 +40,7 @@ export function DashboardHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Link href="/admin" className="flex items-center gap-2 font-semibold">
-          <span className={`${isMobile ? 'text-base' : 'text-lg'} text-black font-bold`}>KOODOS</span>
-          <Badge variant="secondary" className="text-xs">Admin</Badge>
+          <span className={`${isMobile ? 'text-base' : 'text-lg'} text-black font-bold`}>Dashboard</span>
         </Link>
       </div>
 

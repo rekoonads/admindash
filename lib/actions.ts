@@ -34,8 +34,9 @@ export async function createArticle(formData: FormData) {
     const metaTitle = (formData.get("metaTitle") as string) || "";
     const metaDescription = (formData.get("metaDescription") as string) || "";
     const metaKeywords = (formData.get("metaKeywords") as string) || "";
+    const isFeatured = formData.get("isFeatured") === "true";
 
-    console.log("Creating article:", { title, categoryId, type, status });
+    console.log("Creating article:", { title, categoryId, type, status, category: categoryId });
 
     if (!title?.trim() || !content?.trim()) {
       console.error("Missing required fields:", { title: !!title, content: !!content });
@@ -73,11 +74,10 @@ export async function createArticle(formData: FormData) {
             clerk_id: actualUserId,
             email: clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com",
             first_name: clerkUser?.firstName || "User",
-            last_name: clerkUser?.lastName || "Name",
+            last_name: clerkUser?.lastName || "",
             username: clerkUser?.username || null,
             role: "ADMIN",
-            last_login: new Date(),
-            updated_at: new Date()
+            last_login: new Date()
           }
         });
       } else {
@@ -97,10 +97,13 @@ export async function createArticle(formData: FormData) {
     const authorName = clerkUser ? 
       `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 
       clerkUser.username || 
+      clerkUser.fullName || 
       'User' : 
       `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
       user.username || 
       'User';
+    
+    console.log('Author name being saved:', authorName, 'Clerk user:', clerkUser?.firstName, clerkUser?.lastName);
 
     const article = await prisma.article.create({
       data: {
@@ -120,10 +123,11 @@ export async function createArticle(formData: FormData) {
         pros: pros ? [pros] : [],
         cons: cons ? [cons] : [],
         verdict: verdict || null,
-        published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" ? new Date(scheduledDate || Date.now()) : null,
+        published_at: status === "PUBLISHED" ? new Date() : status === "SCHEDULED" && scheduledDate ? new Date(scheduledDate) : null,
         meta_title: metaTitle || title,
         meta_description: metaDescription || excerpt || title,
-        meta_keywords: metaKeywords || null
+        meta_keywords: metaKeywords || null,
+        is_featured: isFeatured
       }
     });
 
@@ -173,7 +177,7 @@ export async function getArticles(filters?: {
   }
 }
 
-export async function getPublishedArticles(categorySlug?: string, type?: string) {
+export async function getPublishedArticles(categorySlug?: string, type?: string, featured?: boolean, limit?: number) {
   try {
     const where: any = { status: "PUBLISHED" };
     
@@ -181,11 +185,12 @@ export async function getPublishedArticles(categorySlug?: string, type?: string)
       where.category = categorySlug;
     }
     if (type) where.type = type;
+    if (featured) where.is_featured = true;
 
     const articles = await prisma.article.findMany({
       where,
       orderBy: { published_at: "desc" },
-      take: 20,
+      take: limit || 20,
     });
 
     return articles;
