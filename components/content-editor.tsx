@@ -66,6 +66,7 @@ export function ContentEditor({
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
   const [category, setCategory] = useState(initialCategory);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<
     "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
   >(initialStatus as any);
@@ -94,12 +95,24 @@ export function ContentEditor({
     }
   }, [user]);
   
+  // Sync primary category with selected categories
+  useEffect(() => {
+    if (category && !selectedCategories.includes(category)) {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  }, [category]);
+  
   useEffect(() => {
     if (editingPost) {
       setTitle(editingPost.title);
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
       setCategory(editingPost.category || "latest-news");
+      const postCategories = editingPost.categories?.map(c => c.category) || [];
+      if (!postCategories.includes(editingPost.category)) {
+        postCategories.push(editingPost.category || "latest-news");
+      }
+      setSelectedCategories(postCategories);
       setStatus(editingPost.status as any);
       setTags(""); // Tags not in current schema
       setFeaturedImage(editingPost.featured_image || "");
@@ -128,7 +141,8 @@ export function ContentEditor({
       formData.append("excerpt", excerpt.trim());
       formData.append("author", author);
       formData.append("categoryId", category);
-      console.log("Selected category:", category);
+      formData.append("categories", JSON.stringify(selectedCategories));
+      console.log("Selected categories:", selectedCategories);
       formData.append("type", type === "News Article" ? "NEWS" : type.includes("Review") ? "REVIEW" : "ARTICLE");
       formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);
       formData.append("tags", tags);
@@ -479,10 +493,15 @@ export function ContentEditor({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Label>Primary Category</Label>
+                <Select value={category} onValueChange={(value) => {
+                  setCategory(value);
+                  if (!selectedCategories.includes(value)) {
+                    setSelectedCategories([...selectedCategories, value]);
+                  }
+                }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select primary category" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
@@ -498,6 +517,31 @@ export function ContentEditor({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Additional Categories</Label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                  {categories.map((cat) => (
+                    <label key={cat} className="flex items-center space-x-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCategories([...selectedCategories, cat])
+                          } else {
+                            // Don't allow unchecking primary category
+                            if (cat !== category) {
+                              setSelectedCategories(selectedCategories.filter(c => c !== cat))
+                            }
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{cat.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>

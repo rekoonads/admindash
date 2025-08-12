@@ -18,6 +18,12 @@ export async function createArticle(formData: FormData) {
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
     const categoryId = (formData.get("categoryId") as string) || "latest-news";
+    const categoriesJson = formData.get("categories") as string;
+    let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
+    // Ensure primary category is always included
+    if (!selectedCategories.includes(categoryId)) {
+      selectedCategories.push(categoryId);
+    }
     const type = (formData.get("type") as string) || "NEWS";
     const status = (formData.get("status") as string) || "DRAFT";
     const image = (formData.get("image") as string) || "";
@@ -131,7 +137,10 @@ export async function createArticle(formData: FormData) {
         meta_keywords: metaKeywords || null,
         is_featured: isFeatured,
         purchase_link: purchaseLink || null,
-        price: price || null
+        price: price || null,
+        categories: {
+          create: selectedCategories.map(cat => ({ category: cat }))
+        }
       }
     });
 
@@ -186,13 +195,17 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
     const where: any = { status: "PUBLISHED" };
     
     if (categorySlug) {
-      where.category = categorySlug;
+      where.OR = [
+        { category: categorySlug },
+        { categories: { some: { category: categorySlug } } }
+      ];
     }
     if (type) where.type = type;
     if (featured) where.is_featured = true;
 
     const articles = await prisma.article.findMany({
       where,
+      include: { categories: true },
       orderBy: { published_at: "desc" },
       take: limit || 20,
     });
