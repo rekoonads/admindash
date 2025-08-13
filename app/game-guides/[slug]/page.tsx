@@ -2,10 +2,10 @@ import { getArticleBySlug } from "@/lib/actions"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function GameGuidePage({ params }: { params: { slug: string } }) {
   const article = await getArticleBySlug(params.slug)
   
-  if (!article) {
+  if (!article || article.category !== "game-guides") {
     notFound()
   }
 
@@ -13,14 +13,14 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     <div className="min-h-screen bg-white">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">KOODOS</h1>
+          <h1 className="text-2xl font-bold">KOODOS - Game Guides</h1>
         </div>
       </header>
       
       {article.status === "DRAFT" && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
           <p className="font-bold">Preview Mode</p>
-          <p>This is a draft article and is not visible to the public.</p>
+          <p>This is a draft guide and is not visible to the public.</p>
         </div>
       )}
       
@@ -38,6 +38,11 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           )}
           
           <header className="mb-8">
+            <div className="mb-4">
+              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                Game Guide
+              </span>
+            </div>
             <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
             {article.excerpt && (
               <p className="text-xl text-gray-600 mb-4">{article.excerpt}</p>

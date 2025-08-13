@@ -17,7 +17,7 @@ export async function createArticle(formData: FormData) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const categoryId = (formData.get("categoryId") as string) || "latest-news";
+    const categoryId = (formData.get("categoryId") as string) || "gaming-news";
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
     // Ensure primary category is always included
@@ -44,7 +44,7 @@ export async function createArticle(formData: FormData) {
     const purchaseLink = (formData.get("purchaseLink") as string) || "";
     const price = (formData.get("price") as string) || "";
 
-    console.log("Creating article:", { title, categoryId, type, status, category: categoryId });
+    console.log("Creating article:", { title, categoryId, type, status, category: categoryId, selectedCategories });
 
     if (!title?.trim() || !content?.trim()) {
       console.error("Missing required fields:", { title: !!title, content: !!content });
@@ -223,7 +223,7 @@ export async function getArticleBySlug(slug: string) {
       where: { slug }
     });
 
-    if (article) {
+    if (article && article.status === "PUBLISHED") {
       await prisma.article.update({
         where: { id: article.id },
         data: { 

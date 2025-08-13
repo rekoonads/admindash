@@ -319,13 +319,21 @@ export function ContentEditor({
             variant="outline"
             onClick={() => {
               if (!title || !content) return;
-              const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-              window.open(`https://koodos.in/${slug}`, '_blank');
+              // Save as draft first, then preview
+              handleSave("DRAFT").then(() => {
+                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
+                const categoryPath = category === "game-guides" ? "game-guides" : 
+                                   category === "reviews" ? "reviews" : 
+                                   category === "tech-news" ? "tech" : 
+                                   category === "anime" ? "anime" : "";
+                const url = categoryPath ? `https://koodos.in/${categoryPath}/${slug}` : `https://koodos.in/${slug}`;
+                window.open(url, '_blank');
+              });
             }}
-            disabled={!title || !content}
+            disabled={!title || !content || isLoading}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview on Website
+            {isLoading ? "Saving..." : "Preview on Website"}
           </Button>
           <Button
             variant="outline"
