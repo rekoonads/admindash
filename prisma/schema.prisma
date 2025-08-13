@@ -60,7 +60,7 @@ model Article {
   author           String         @default("Admin")
   status           article_status @default(DRAFT)
   type             article_type   @default(NEWS)
-  category         String         @default("gaming")
+  category         String         @default("latest-news")
   categories       ArticleCategory[]
   views            Int            @default(0)
   likes            Int            @default(0)
