@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Gamepad2, Plus } from "lucide-react"
 
-export default function Nintendo-switchPage() {
+export default function NintendoSwitchPage() {
   const [showEditor, setShowEditor] = useState(false)
 
   if (showEditor) {
     return (
       <ContentEditor
-        type="Nintendo-switch Article"
+        type="Nintendo Switch Article"
         initialCategory="nintendo-switch"
         onSave={() => setShowEditor(false)}
         onPublish={() => setShowEditor(false)}
@@ -26,21 +26,21 @@ export default function Nintendo-switchPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Gamepad2 className="h-8 w-8 text-red-600" />
-            Nintendo-switch Content
+            Nintendo Switch Content
           </h1>
-          <p className="text-muted-foreground">Manage nintendo-switch content and articles</p>
+          <p className="text-muted-foreground">Manage Nintendo Switch content and articles</p>
         </div>
         <Button onClick={() => setShowEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Create Nintendo-switch Content
+          Create Nintendo Switch Content
         </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Nintendo-switch News</CardTitle>
-            <CardDescription>Latest nintendo-switch news</CardDescription>
+            <CardTitle>Nintendo Switch News</CardTitle>
+            <CardDescription>Latest Nintendo Switch news</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">0</p>
