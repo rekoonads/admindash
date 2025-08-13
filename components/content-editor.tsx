@@ -93,6 +93,8 @@ export function ContentEditor({
     if (user) {
       const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       setAuthor(fullName || user.username || user.emailAddresses?.[0]?.emailAddress || 'Admin User');
+    } else {
+      setAuthor('Admin User'); // Fallback when no user
     }
   }, [user]);
   
@@ -140,11 +142,22 @@ export function ContentEditor({
       formData.append("title", title.trim());
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
-      formData.append("author", author || 'Admin User');
+      // Author is handled server-side from Clerk user data
       formData.append("categoryId", category);
       formData.append("categories", JSON.stringify(selectedCategories));
       console.log("Selected categories:", selectedCategories);
-      formData.append("type", type === "News Article" ? "NEWS" : type.includes("Review") ? "REVIEW" : "ARTICLE");
+      // Map content type to valid Prisma enum
+      let articleType = "NEWS"; // default
+      if (type.includes("Review") || type.includes("review")) articleType = "REVIEW";
+      else if (type.includes("Guide") || type.includes("guide")) articleType = "GUIDE";
+      else if (type.includes("Video") || type.includes("video")) articleType = "VIDEO";
+      else if (type.includes("Anime") || type.includes("anime")) articleType = "ANIME";
+      else if (type.includes("Comics") || type.includes("comics")) articleType = "COMICS";
+      else if (type.includes("Tech") || type.includes("tech")) articleType = "TECH";
+      else if (type.includes("Science") || type.includes("science")) articleType = "SCIENCE";
+      else if (type.includes("Esports") || type.includes("esports")) articleType = "ESPORTS";
+      
+      formData.append("type", articleType);
       formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);
       formData.append("tags", tags);
       if (featuredImage) formData.append("featuredImage", featuredImage);
@@ -304,11 +317,15 @@ export function ContentEditor({
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setShowPreview(true)}
+            onClick={() => {
+              if (!title || !content) return;
+              const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+              window.open(`https://koodos.in/${slug}`, '_blank');
+            }}
             disabled={!title || !content}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            Preview on Website
           </Button>
           <Button
             variant="outline"
@@ -524,7 +541,7 @@ export function ContentEditor({
               </div>
               <div className="space-y-2">
                 <Label>Author</Label>
-                <Input value={author} disabled />
+                <Input value={author || 'Auto-filled from your account'} disabled className="text-muted-foreground" />
               </div>
               <div className="flex items-center space-x-2">
                 <input
