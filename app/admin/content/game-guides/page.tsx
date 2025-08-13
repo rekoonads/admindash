@@ -101,7 +101,8 @@ export default function GameGuidesPage() {
   if (showEditor) {
     return (
       <ContentEditor
-        type={editingGuide ? "Edit Game Guide" : "New Game Guide"}
+        type="Game Guide"
+        initialCategory="game-guides"
         initialTitle={editingGuide?.title}
         initialContent={editingGuide ? `<h1>${editingGuide.title}</h1><p>Edit your game guide content here...</p>` : ""}
         onSave={handleSave}

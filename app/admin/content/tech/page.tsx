@@ -1,10 +1,25 @@
 "use client"
 
+import { useState } from "react"
+import { ContentEditor } from "@/components/content-editor"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Smartphone, Plus } from "lucide-react"
 
 export default function TechPage() {
+  const [showEditor, setShowEditor] = useState(false)
+
+  if (showEditor) {
+    return (
+      <ContentEditor
+        type="Tech Article"
+        initialCategory="tech-news"
+        onSave={() => setShowEditor(false)}
+        onPublish={() => setShowEditor(false)}
+      />
+    )
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -15,7 +30,7 @@ export default function TechPage() {
           </h1>
           <p className="text-muted-foreground">Manage technology news and reviews</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create Tech Content
         </Button>

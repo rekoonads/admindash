@@ -91,7 +91,8 @@ export function ContentEditor({
   useEffect(() => {
     // Set author from user context
     if (user) {
-      setAuthor(`${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'User');
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      setAuthor(fullName || user.username || user.emailAddresses?.[0]?.emailAddress || 'Admin User');
     }
   }, [user]);
   
@@ -139,7 +140,7 @@ export function ContentEditor({
       formData.append("title", title.trim());
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
-      formData.append("author", author);
+      formData.append("author", author || 'Admin User');
       formData.append("categoryId", category);
       formData.append("categories", JSON.stringify(selectedCategories));
       console.log("Selected categories:", selectedCategories);
@@ -493,15 +494,10 @@ export function ContentEditor({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Primary Category</Label>
-                <Select value={category} onValueChange={(value) => {
-                  setCategory(value);
-                  if (!selectedCategories.includes(value)) {
-                    setSelectedCategories([...selectedCategories, value]);
-                  }
-                }}>
+                <Label>Category</Label>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select primary category" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
@@ -517,31 +513,6 @@ export function ContentEditor({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Additional Categories</Label>
-                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                  {categories.map((cat) => (
-                    <label key={cat} className="flex items-center space-x-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selectedCategories.includes(cat)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedCategories([...selectedCategories, cat])
-                          } else {
-                            // Don't allow unchecking primary category
-                            if (cat !== category) {
-                              setSelectedCategories(selectedCategories.filter(c => c !== cat))
-                            }
-                          }
-                        }}
-                        className="rounded"
-                      />
-                      <span>{cat.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>

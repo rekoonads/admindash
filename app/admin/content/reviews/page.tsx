@@ -65,7 +65,8 @@ export default function ReviewsPage() {
   if (showEditor) {
     return (
       <ContentEditor
-        type="Review"
+        type="Game Review"
+        initialCategory="reviews"
         onSave={() => setShowEditor(false)}
         onPublish={() => setShowEditor(false)}
       />

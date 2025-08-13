@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ContentEditor } from "@/components/content-editor"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,8 +14,20 @@ import { useIsMobile } from "@/components/ui/use-mobile"
 
 export default function VideosPage() {
   const isMobile = useIsMobile()
+  const [showEditor, setShowEditor] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  if (showEditor) {
+    return (
+      <ContentEditor
+        type="Video Content"
+        initialCategory="video-content"
+        onSave={() => setShowEditor(false)}
+        onPublish={() => setShowEditor(false)}
+      />
+    )
+  }
 
   const handleCreateVideo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -82,9 +95,9 @@ export default function VideosPage() {
           <h1 className="text-3xl font-bold">Video Content</h1>
           <p className="text-muted-foreground">Manage gaming videos and content</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
+        <Button onClick={() => setShowEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Video
+          Create Video Content
         </Button>
       </div>
 
