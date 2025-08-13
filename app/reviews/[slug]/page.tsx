@@ -5,7 +5,7 @@ import Image from "next/image"
 export default async function ReviewPage({ params }: { params: { slug: string } }) {
   const article = await getArticleBySlug(params.slug)
   
-  if (!article || article.category !== "reviews") {
+  if (!article || article.category?.slug !== "reviews") {
     notFound()
   }
 

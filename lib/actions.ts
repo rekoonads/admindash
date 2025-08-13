@@ -17,7 +17,7 @@ export async function createArticle(formData: FormData) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const categoryId = (formData.get("categoryId") as string) || "gaming-news";
+    const categoryId = (formData.get("categoryId") as string) || "latest-news";
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
     // Ensure primary category is always included
@@ -49,6 +49,14 @@ export async function createArticle(formData: FormData) {
     if (!title?.trim() || !content?.trim()) {
       console.error("Missing required fields:", { title: !!title, content: !!content });
       throw new Error("Title and content are required");
+    }
+
+    // Validate category exists
+    const categoryExists = await prisma.category.findUnique({
+      where: { slug: categoryId }
+    });
+    if (!categoryExists) {
+      throw new Error(`Category '${categoryId}' does not exist`);
     }
 
     const baseSlug = title
@@ -123,7 +131,7 @@ export async function createArticle(formData: FormData) {
         video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        category: categoryId,
+        category_id: categoryId,
         author: authorName,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],
@@ -179,6 +187,10 @@ export async function getArticles(filters?: {
 
     const articles = await prisma.article.findMany({
       where,
+      include: {
+        category: true,
+        categories: true
+      },
       orderBy: { created_at: "desc" },
       take: filters?.limit || undefined,
     });
@@ -196,7 +208,7 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
     
     if (categorySlug) {
       where.OR = [
-        { category: categorySlug },
+        { category_id: categorySlug },
         { categories: { some: { category: categorySlug } } }
       ];
     }
@@ -205,7 +217,10 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
 
     const articles = await prisma.article.findMany({
       where,
-      include: { categories: true },
+      include: { 
+        category: true,
+        categories: true 
+      },
       orderBy: { published_at: "desc" },
       take: limit || 20,
     });
@@ -220,7 +235,11 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
 export async function getArticleBySlug(slug: string) {
   try {
     const article = await prisma.article.findUnique({
-      where: { slug }
+      where: { slug },
+      include: {
+        category: true,
+        categories: true
+      }
     });
 
     if (article && article.status === "PUBLISHED") {
@@ -271,8 +290,9 @@ export async function updatePost(id: string, formData: FormData) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
+    const categoryId = (formData.get("categoryId") as string);
     const status = (formData.get("status") as string) || "DRAFT";
-    const image = (formData.get("image") as string) || "";
+    const featuredImage = (formData.get("featuredImage") as string) || "";
 
     if (!title || !content) {
       throw new Error("Title and content are required");
@@ -284,17 +304,27 @@ export async function updatePost(id: string, formData: FormData) {
       .replace(/(^-|-$)/g, "")
       .substring(0, 50);
 
+    const updateData: any = {
+      title,
+      content,
+      excerpt: excerpt || null,
+      status: status as any,
+      slug,
+      featured_image: featuredImage || null,
+      published_at: status === "PUBLISHED" ? new Date() : null,
+    };
+
+    if (categoryId) {
+      updateData.category_id = categoryId;
+    }
+
     const article = await prisma.article.update({
       where: { id },
-      data: {
-        title,
-        content,
-        excerpt: excerpt || null,
-        status: status as any,
-        slug,
-        image: image || null,
-        publishedAt: status === "PUBLISHED" ? new Date() : null,
-      },
+      data: updateData,
+      include: {
+        category: true,
+        categories: true
+      }
     });
 
     revalidatePath("/admin/content");
@@ -334,7 +364,13 @@ export async function getBanners() {
         excerpt: true,
         featured_image: true,
         created_at: true,
-        category: true,
+        category_id: true,
+        category: {
+          select: {
+            slug: true,
+            name: true
+          }
+        }
       },
       orderBy: {
         created_at: 'desc',

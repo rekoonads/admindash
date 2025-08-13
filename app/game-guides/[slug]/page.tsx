@@ -5,7 +5,7 @@ import Image from "next/image"
 export default async function GameGuidePage({ params }: { params: { slug: string } }) {
   const article = await getArticleBySlug(params.slug)
   
-  if (!article || article.category !== "game-guides") {
+  if (!article || article.category?.slug !== "game-guides") {
     notFound()
   }
 

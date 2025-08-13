@@ -5,7 +5,7 @@ import Image from "next/image"
 export default async function AnimePage({ params }: { params: { slug: string } }) {
   const article = await getArticleBySlug(params.slug)
   
-  if (!article || article.category !== "anime") {
+  if (!article || article.category?.slug !== "anime") {
     notFound()
   }
 

@@ -85,6 +85,7 @@ export function ContentEditor({
   const [isFeatured, setIsFeatured] = useState(false);
   const [purchaseLink, setPurchaseLink] = useState("");
   const [price, setPrice] = useState("");
+  const [availableCategories, setAvailableCategories] = useState<Array<{slug: string, name: string}>>([]);
 
   const { user } = useUser();
   
@@ -97,6 +98,14 @@ export function ContentEditor({
       setAuthor('Admin User'); // Fallback when no user
     }
   }, [user]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setAvailableCategories(data))
+      .catch(err => console.error('Failed to fetch categories:', err));
+  }, []);
   
   // Sync primary category with selected categories
   useEffect(() => {
@@ -204,34 +213,25 @@ export function ContentEditor({
     }
   };
 
-  const categories = [
-    "latest-news",
-    "reviews",
-    "gaming-hub",
-    "tech-zone",
-    "video-content",
-    "anime-corner",
-    "discussions",
-    "deep-dives",
-    "game-guides",
-    "top-lists",
-    "community",
-    "comics-hub",
-    "social",
-    "gaming-news",
-    "game-reviews",
-    "gaming-videos",
-    "pc-gaming",
-    "playstation-5",
-    "xbox",
-    "nintendo-switch",
-    "mobile-gaming",
-    "anime",
-    "comics",
-    "esports",
-    "tech-news",
-    "science",
-  ];
+  // Use dynamic categories from API, fallback to static list
+  const categories = availableCategories.length > 0 
+    ? availableCategories.map(cat => cat.slug)
+    : [
+        "latest-news",
+        "reviews",
+        "game-guides",
+        "tech-news",
+        "video-content",
+        "anime",
+        "comics",
+        "esports",
+        "pc-gaming",
+        "playstation-5",
+        "xbox",
+        "nintendo-switch",
+        "mobile-gaming",
+        "science",
+      ];
 
   if (showPreview) {
     return (
@@ -322,11 +322,7 @@ export function ContentEditor({
               // Save as draft first, then preview
               handleSave("DRAFT").then(() => {
                 const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
-                const categoryPath = category === "game-guides" ? "game-guides" : 
-                                   category === "reviews" ? "reviews" : 
-                                   category === "tech-news" ? "tech" : 
-                                   category === "anime" ? "anime" : "";
-                const url = categoryPath ? `https://koodos.in/${categoryPath}/${slug}` : `https://koodos.in/${slug}`;
+                const url = `https://koodos.in/${category}/${slug}`;
                 window.open(url, '_blank');
               });
             }}
@@ -525,17 +521,24 @@ export function ContentEditor({
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat
-                          .split("-")
-                          .map(
-                            (word) =>
-                              word.charAt(0).toUpperCase() + word.slice(1)
-                          )
-                          .join(" ")}
-                      </SelectItem>
-                    ))}
+                    {availableCategories.length > 0 
+                      ? availableCategories.map((cat) => (
+                          <SelectItem key={cat.slug} value={cat.slug}>
+                            {cat.name}
+                          </SelectItem>
+                        ))
+                      : categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat
+                              .split("-")
+                              .map(
+                                (word) =>
+                                  word.charAt(0).toUpperCase() + word.slice(1)
+                              )
+                              .join(" ")}
+                          </SelectItem>
+                        ))
+                    }
                   </SelectContent>
                 </Select>
               </div>

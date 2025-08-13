@@ -42,6 +42,7 @@ model Category {
   sort_order       Int        @default(0)
   created_at       DateTime   @default(now())
   updated_at       DateTime   @updatedAt
+  articles         Article[]
   categories       Category?  @relation("categoriesTocategories", fields: [parent_id], references: [id])
   other_categories Category[] @relation("categoriesTocategories")
 
@@ -60,7 +61,8 @@ model Article {
   author           String         @default("Admin")
   status           article_status @default(DRAFT)
   type             article_type   @default(NEWS)
-  category         String         @default("latest-news")
+  category_id      String         @default("latest-news")
+  category         Category       @relation(fields: [category_id], references: [slug])
   categories       ArticleCategory[]
   views            Int            @default(0)
   likes            Int            @default(0)
@@ -96,7 +98,7 @@ model Article {
   media            Media[]
   reactions        reactions[]
 
-  @@index([category])
+  @@index([category_id])
   @@index([created_at(sort: Desc)])
   @@index([game_title])
   @@index([genre])

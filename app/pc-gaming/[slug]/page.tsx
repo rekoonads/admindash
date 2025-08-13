@@ -2,10 +2,10 @@ import { getArticleBySlug } from "@/lib/actions"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 
-export default async function TechPage({ params }: { params: { slug: string } }) {
+export default async function PcGamingPage({ params }: { params: { slug: string } }) {
   const article = await getArticleBySlug(params.slug)
   
-  if (!article || article.category?.slug !== "tech-news") {
+  if (!article || article.category?.slug !== "pc-gaming") {
     notFound()
   }
 
@@ -13,14 +13,14 @@ export default async function TechPage({ params }: { params: { slug: string } })
     <div className="min-h-screen bg-white">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">KOODOS - Tech</h1>
+          <h1 className="text-2xl font-bold">KOODOS - PC Gaming</h1>
         </div>
       </header>
       
       {article.status === "DRAFT" && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
           <p className="font-bold">Preview Mode</p>
-          <p>This is a draft tech article and is not visible to the public.</p>
+          <p>This is a draft PC gaming article and is not visible to the public.</p>
         </div>
       )}
       
@@ -39,8 +39,8 @@ export default async function TechPage({ params }: { params: { slug: string } })
           
           <header className="mb-8">
             <div className="mb-4">
-              <span className="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
-                Tech News
+              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                PC Gaming
               </span>
             </div>
             <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
