@@ -65,7 +65,7 @@ export function ContentEditor({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
-  const [category, setCategory] = useState(initialCategory);
+  const [category, setCategory] = useState(initialCategory || "latest-news");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<
     "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
@@ -323,6 +323,7 @@ export function ContentEditor({
               handleSave("DRAFT").then(() => {
                 const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
                 const url = `https://koodos.in/${category}/${slug}`;
+                console.log('Preview URL:', url);
                 window.open(url, '_blank');
               });
             }}

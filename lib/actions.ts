@@ -18,6 +18,8 @@ export async function createArticle(formData: FormData) {
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
     const categoryId = (formData.get("categoryId") as string) || "latest-news";
+    
+    console.log("Using categoryId:", categoryId);
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
     // Ensure primary category is always included
@@ -51,27 +53,19 @@ export async function createArticle(formData: FormData) {
       throw new Error("Title and content are required");
     }
 
-    // Validate category exists
+    // Validate category exists and get category data
     const categoryExists = await prisma.category.findUnique({
-      where: { slug: categoryId }
+      where: { slug: categoryId },
+      select: { id: true, slug: true, name: true }
     });
     if (!categoryExists) {
       throw new Error(`Category '${categoryId}' does not exist`);
     }
 
-    const baseSlug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
-      .substring(0, 50);
-    
-    // Ensure unique slug
-    let slug = baseSlug;
-    let counter = 1;
-    while (await prisma.article.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
+    // Generate unique article slug
+    const { generateSlug, ensureUniqueArticleSlug } = await import('@/lib/slug-utils')
+    const baseSlug = generateSlug(title).substring(0, 50)
+    const slug = await ensureUniqueArticleSlug(baseSlug)
 
     // Get or create user
     const actualUserId = userId || "default-admin";
@@ -298,11 +292,10 @@ export async function updatePost(id: string, formData: FormData) {
       throw new Error("Title and content are required");
     }
 
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
-      .substring(0, 50);
+    // Generate unique article slug
+    const { generateSlug, ensureUniqueArticleSlug } = await import('@/lib/slug-utils')
+    const baseSlug = generateSlug(title).substring(0, 50)
+    const slug = await ensureUniqueArticleSlug(baseSlug, id)
 
     const updateData: any = {
       title,

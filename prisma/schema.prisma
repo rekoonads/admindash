@@ -61,7 +61,7 @@ model Article {
   author           String         @default("Admin")
   status           article_status @default(DRAFT)
   type             article_type   @default(NEWS)
-  category_id      String         @default("latest-news")
+  category_id      String
   category         Category       @relation(fields: [category_id], references: [slug])
   categories       ArticleCategory[]
   views            Int            @default(0)

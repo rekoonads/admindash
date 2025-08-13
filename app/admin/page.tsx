@@ -41,7 +41,7 @@ export default function AdminDashboard() {
           // Process content stats by category
           const categoryStats = {}
           articlesData.forEach(article => {
-            const category = article.category || 'Other'
+            const category = article.category?.name || article.category_id || 'Other'
             categoryStats[category] = (categoryStats[category] || 0) + 1
           })
           
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
             .slice(0, 4)
             .map(article => ({
               title: article.title,
-              category: article.category?.replace('-', ' ') || 'General',
+              category: article.category?.name || article.category_id?.replace('-', ' ') || 'General',
               views: article.views.toLocaleString(),
               engagement: Math.floor(Math.random() * 20) + 80, // Placeholder for engagement
               slug: article.slug

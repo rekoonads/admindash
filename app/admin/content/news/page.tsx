@@ -144,7 +144,7 @@ export default function NewsPage() {
           initialTitle={editingPost?.title}
           initialContent={editingPost?.content}
           initialExcerpt={editingPost?.excerpt || ""}
-          initialCategory={editingPost?.category}
+          initialCategory={editingPost?.category?.slug || editingPost?.category_id}
           initialStatus={editingPost?.status}
           editingPost={editingPost}
           onSave={handleSave}
@@ -262,7 +262,7 @@ export default function NewsPage() {
                         {post.status.toLowerCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell>{post.category || "Uncategorized"}</TableCell>
+                    <TableCell>{post.category?.name || post.category_id || "Uncategorized"}</TableCell>
                     <TableCell>{post.views.toLocaleString()}</TableCell>
                     <TableCell>
                       {new Date(post.created_at).toLocaleDateString()}

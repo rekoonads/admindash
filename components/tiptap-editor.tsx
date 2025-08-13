@@ -87,6 +87,8 @@ export function TiptapEditor({
           keepMarks: true,
           keepAttributes: false,
         },
+        // Exclude extensions we're adding separately
+        link: false,
       }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
