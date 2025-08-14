@@ -59,6 +59,8 @@ export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorPro
         <div className="space-y-2">
           <Label htmlFor="content">Content</Label>
           <RichTextEditor
+            id="content"
+            name="content"
             placeholder={`Write your ${title.toLowerCase()} content here...`}
             className="min-h-[300px]"
           />
@@ -100,8 +102,8 @@ export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorPro
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="status">Publish Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
+              <Select value={status} onValueChange={setStatus} name="status">
+                <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -161,8 +163,8 @@ export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorPro
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="author">Author</Label>
-              <Select>
-                <SelectTrigger>
+              <Select name="author">
+                <SelectTrigger id="author">
                   <SelectValue placeholder="Select author" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,8 +177,8 @@ export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorPro
 
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select>
-                <SelectTrigger>
+              <Select name="category">
+                <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>

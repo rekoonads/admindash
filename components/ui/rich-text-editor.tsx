@@ -17,23 +17,27 @@ import {
 import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
-  content: string;
-  onChange: (content: string) => void;
+  content?: string;
+  onChange?: (content: string) => void;
   placeholder?: string;
   className?: string;
+  id?: string;
+  name?: string;
 }
 
 export function RichTextEditor({
-  content,
-  onChange,
+  content = '',
+  onChange = () => {},
   placeholder,
   className,
+  id = 'rich-editor',
+  name,
 }: RichTextEditorProps) {
   const [showPreview, setShowPreview] = useState(false);
 
   const insertTag = (openTag: string, closeTag = "") => {
     const textarea = document.getElementById(
-      "rich-editor"
+      id
     ) as HTMLTextAreaElement;
     if (!textarea) return;
 
@@ -131,7 +135,8 @@ export function RichTextEditor({
         </Card>
       ) : (
         <Textarea
-          id="rich-editor"
+          id={id}
+          name={name || id}
           value={content}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
