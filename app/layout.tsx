@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider domain={process.env.NEXT_PUBLIC_CLERK_DOMAIN}>
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.className} antialiased`} suppressHydrationWarning>
           {children}
