@@ -177,6 +177,7 @@ export async function getArticles(filters?: {
     const where: any = {};
 
     if (filters?.status) where.status = filters.status;
+    if (filters?.category) where.category_id = filters.category;
     if (filters?.type) where.type = filters.type;
     
     if (filters?.search) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ContentEditor } from "@/components/content-editor"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -30,40 +30,41 @@ interface Guide {
   views: number
   category: string
   createdAt: string
+  slug?: string
 }
 
-const mockGuides: Guide[] = [
-  {
-    id: "1",
-    title: "Complete Elden Ring Boss Guide",
-    author: "John Admin",
-    status: "published",
-    views: 5200,
-    category: "RPG",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Minecraft Building Tips & Tricks",
-    author: "Jane Admin",
-    status: "draft",
-    views: 0,
-    category: "Sandbox",
-    createdAt: "2024-01-14",
-  },
-  {
-    id: "3",
-    title: "Speedrun Strategies for Hollow Knight",
-    author: "Mike Admin",
-    status: "scheduled",
-    views: 0,
-    category: "Platformer",
-    createdAt: "2024-01-13",
-  },
-]
+
 
 export default function GameGuidesPage() {
-  const [guides, setGuides] = useState<Guide[]>(mockGuides)
+  const [guides, setGuides] = useState<Guide[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    async function fetchGuides() {
+      try {
+        const response = await fetch('/api/articles?category=game-guides')
+        if (response.ok) {
+          const articles = await response.json()
+          const formattedGuides = articles.map((article: any) => ({
+            id: article.id,
+            title: article.title,
+            author: article.author || 'Admin',
+            status: article.status.toLowerCase(),
+            views: article.views || 0,
+            category: article.category?.name || 'Game Guide',
+            createdAt: new Date(article.created_at).toLocaleDateString(),
+            slug: article.slug
+          }))
+          setGuides(formattedGuides)
+        }
+      } catch (error) {
+        console.error('Failed to fetch guides:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchGuides()
+  }, [])
   const [showEditor, setShowEditor] = useState(false)
   const [editingGuide, setEditingGuide] = useState<Guide | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -142,6 +143,19 @@ export default function GameGuidesPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-gray-600">Loading guides...</p>
+              </div>
+            </div>
+          ) : guides.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No game guides found. Create your first guide!</p>
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -218,6 +232,7 @@ export default function GameGuidesPage() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>
