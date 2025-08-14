@@ -41,8 +41,13 @@ export default function AdminDashboard() {
           // Process content stats by category
           const categoryStats = {}
           articlesData.forEach(article => {
-            const category = article.category?.name || article.category_id || 'Other'
-            categoryStats[category] = (categoryStats[category] || 0) + 1
+            // Ensure we get a string value, not an object
+            const categoryName = typeof article.category === 'object' && article.category?.name 
+              ? article.category.name 
+              : typeof article.category_id === 'string' 
+              ? article.category_id 
+              : 'Other'
+            categoryStats[categoryName] = (categoryStats[categoryName] || 0) + 1
           })
           
           const contentStatsData = Object.entries(categoryStats).map(([category, count], index) => ({
@@ -56,12 +61,16 @@ export default function AdminDashboard() {
           // Get trending content (top viewed articles)
           const trending = articlesData
             .filter(article => article.status === 'PUBLISHED')
-            .sort((a, b) => b.views - a.views)
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
             .slice(0, 4)
             .map(article => ({
-              title: article.title,
-              category: article.category?.name || article.category_id?.replace('-', ' ') || 'General',
-              views: article.views.toLocaleString(),
+              title: article.title || 'Untitled',
+              category: typeof article.category === 'object' && article.category?.name 
+                ? article.category.name 
+                : typeof article.category_id === 'string' 
+                ? article.category_id.replace('-', ' ') 
+                : 'General',
+              views: (article.views || 0).toLocaleString(),
               engagement: Math.floor(Math.random() * 20) + 80, // Placeholder for engagement
               slug: article.slug
             }))
