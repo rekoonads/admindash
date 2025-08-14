@@ -12,17 +12,26 @@ interface PageProps {
 export default async function DynamicArticlePage({ params }: PageProps) {
   const { category, slug } = params
   
-  // Get article and verify it belongs to the correct category
+  // Get article
   const article = await getArticleBySlug(slug)
   
   if (!article) {
+    console.log('Article not found for slug:', slug)
     notFound()
   }
   
-  // Check if article belongs to the requested category
-  if (article.category?.slug !== category && article.category_id !== category) {
-    notFound()
-  }
+  console.log('Article found:', {
+    title: article.title,
+    categorySlug: article.category?.slug,
+    requestedCategory: category,
+    status: article.status
+  })
+  
+  // For now, allow all articles to show regardless of category mismatch
+  // TODO: Re-enable strict checking once URLs are working
+  // if (article.category?.slug !== category) {
+  //   notFound()
+  // }
 
   // Get category display name
   const categoryName = article.category?.name || category
@@ -58,7 +67,7 @@ export default async function DynamicArticlePage({ params }: PageProps) {
       
       {article.status === "DRAFT" && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-          <p className="font-bold">Preview Mode</p>
+          <p className="font-bold">🔍 Preview Mode</p>
           <p>This is a draft article and is not visible to the public.</p>
         </div>
       )}

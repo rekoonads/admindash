@@ -328,8 +328,10 @@ export function ContentEditor({
                 const article = await handleSave("DRAFT");
                 // Use the actual slug from the saved article
                 const slug = article?.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
-                const url = `https://koodos.in/${category}/${slug}`;
-                console.log('Preview URL:', url);
+                // Get the category slug from availableCategories
+                const categorySlug = availableCategories.find(cat => cat.slug === category)?.slug || category;
+                const url = `https://koodos.in/${categorySlug}/${slug}`;
+                console.log('Preview URL:', url, 'Category:', categorySlug);
                 window.open(url, '_blank');
               } catch (error) {
                 console.error('Error saving for preview:', error);

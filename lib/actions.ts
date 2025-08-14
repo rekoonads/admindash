@@ -7,11 +7,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 export async function createArticle(formData: FormData) {
   try {
     const { userId } = await auth();
+    const actualUserId = userId || "default-admin";
+    
     if (!userId) {
-      console.error("Unauthorized: No user ID");
-      // In production, create with default user if auth fails
-      const defaultUserId = "default-admin";
-      console.log("Using default user ID:", defaultUserId);
+      console.log("No user ID from auth, using default:", actualUserId);
     }
 
     const title = formData.get("title") as string;
@@ -76,7 +75,6 @@ export async function createArticle(formData: FormData) {
     const slug = await ensureUniqueArticleSlug(baseSlug)
 
     // Get or create user
-    const actualUserId = userId || "default-admin";
     let user;
     const clerkUser = await currentUser();
     
@@ -133,7 +131,7 @@ export async function createArticle(formData: FormData) {
         video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        category_id: categoryExists.slug,
+        category_id: categoryExists.id,
         author: authorName,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],
@@ -237,13 +235,28 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
 
 export async function getArticleBySlug(slug: string) {
   try {
+    console.log('🔍 Looking for article with slug:', slug)
     const article = await prisma.article.findUnique({
       where: { slug },
       include: {
-        category: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
         categories: true
       }
     });
+    
+    console.log('📄 Article result:', article ? {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      status: article.status,
+      category: article.category
+    } : 'NOT FOUND')
 
     if (article && article.status === "PUBLISHED") {
       await prisma.article.update({
