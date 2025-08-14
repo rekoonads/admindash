@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { Upload, Trash2 } from "lucide-react"
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+}
 
 interface PostEditorProps {
   title: string
@@ -19,6 +25,22 @@ interface PostEditorProps {
 
 export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorProps) {
   const [status, setStatus] = useState("draft") // 'draft', 'published', 'scheduled'
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+      }
+    }
+    fetchCategories()
+  }, [])
 
   return (
     <div className="grid grid-cols-3 gap-6 py-4">
@@ -158,13 +180,11 @@ export function PostEditor({ title, onSave, onPublish, onCancel }: PostEditorPro
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="news">News</SelectItem>
-                  <SelectItem value="reviews">Reviews</SelectItem>
-                  <SelectItem value="guides">Guides</SelectItem>
-                  <SelectItem value="videos">Videos</SelectItem>
-                  <SelectItem value="anime">Anime</SelectItem>
-                  <SelectItem value="tech">Tech</SelectItem>
-                  <SelectItem value="comics">Comics</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.slug}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
