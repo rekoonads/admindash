@@ -56,7 +56,7 @@ export function ContentEditor({
   initialTitle = "",
   initialContent = "",
   initialExcerpt = "",
-  initialCategory = "latest-news",
+  initialCategory = "game-guides",
   initialStatus = "DRAFT",
   editingPost,
   onSave,
@@ -65,7 +65,7 @@ export function ContentEditor({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
-  const [category, setCategory] = useState(initialCategory || "latest-news");
+  const [category, setCategory] = useState(initialCategory || "game-guides");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<
     "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
@@ -119,10 +119,10 @@ export function ContentEditor({
       setTitle(editingPost.title);
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
-      setCategory(editingPost.category || "latest-news");
+      setCategory(editingPost.category?.slug || editingPost.category_id || "game-guides");
       const postCategories = editingPost.categories?.map(c => c.category) || [];
       if (!postCategories.includes(editingPost.category)) {
-        postCategories.push(editingPost.category || "latest-news");
+        postCategories.push(editingPost.category?.slug || editingPost.category_id || "game-guides");
       }
       setSelectedCategories(postCategories);
       setStatus(editingPost.status as any);
@@ -153,6 +153,7 @@ export function ContentEditor({
       formData.append("excerpt", excerpt.trim());
       // Author is handled server-side from Clerk user data
       formData.append("categoryId", category);
+      console.log("Sending categoryId to server:", category);
       formData.append("categories", JSON.stringify(selectedCategories));
       console.log("Selected categories:", selectedCategories);
       // Map content type to valid Prisma enum

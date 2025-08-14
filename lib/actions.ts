@@ -17,9 +17,15 @@ export async function createArticle(formData: FormData) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
-    const categoryId = (formData.get("categoryId") as string) || "latest-news";
+    const categoryId = formData.get("categoryId") as string;
     
+    if (!categoryId) {
+      throw new Error("Category is required - no categoryId provided");
+    }
+    
+    console.log("Raw categoryId from form:", formData.get("categoryId"));
     console.log("Using categoryId:", categoryId);
+    console.log("All form data:", Array.from(formData.entries()));
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
     // Ensure primary category is always included
