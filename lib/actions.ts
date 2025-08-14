@@ -61,6 +61,8 @@ export async function createArticle(formData: FormData) {
     if (!categoryExists) {
       throw new Error(`Category '${categoryId}' does not exist`);
     }
+    
+    console.log('Found category:', categoryExists);
 
     // Generate unique article slug
     const { generateSlug, ensureUniqueArticleSlug } = await import('@/lib/slug-utils')
@@ -125,7 +127,7 @@ export async function createArticle(formData: FormData) {
         video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        category_id: categoryId,
+        category_id: categoryExists.slug,
         author: authorName,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],

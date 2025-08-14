@@ -192,10 +192,11 @@ export function ContentEditor({
         formData.append("image", featuredImage);
       }
 
+      let article;
       if (editingPost) {
-        await updatePost(editingPost.id, formData);
+        article = await updatePost(editingPost.id, formData);
       } else {
-        await createArticle(formData);
+        article = await createArticle(formData);
       }
 
       if (saveStatus === "PUBLISHED") {
@@ -203,6 +204,8 @@ export function ContentEditor({
       } else {
         onSave();
       }
+      
+      return article;
     } catch (error) {
       console.error("Error saving post:", error);
       alert(
@@ -317,15 +320,19 @@ export function ContentEditor({
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               if (!title || !content) return;
               // Save as draft first, then preview
-              handleSave("DRAFT").then(() => {
-                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
+              try {
+                const article = await handleSave("DRAFT");
+                // Use the actual slug from the saved article
+                const slug = article?.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
                 const url = `https://koodos.in/${category}/${slug}`;
                 console.log('Preview URL:', url);
                 window.open(url, '_blank');
-              });
+              } catch (error) {
+                console.error('Error saving for preview:', error);
+              }
             }}
             disabled={!title || !content || isLoading}
           >
