@@ -522,58 +522,59 @@ export function ContentEditor({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Settings</CardTitle>
+              <CardTitle className="text-base">Content Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Label>Content Type</Label>
+                <Select value={type} onValueChange={(value) => setCategory(value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select content type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableCategories.length > 0 
-                      ? availableCategories.map((cat) => (
-                          <SelectItem key={cat.slug} value={cat.slug}>
-                            {cat.name}
-                          </SelectItem>
-                        ))
-                      : categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat
-                              .split("-")
-                              .map(
-                                (word) =>
-                                  word.charAt(0).toUpperCase() + word.slice(1)
-                              )
-                              .join(" ")}
-                          </SelectItem>
-                        ))
-                    }
+                    <SelectItem value="latest-updates">Latest Updates</SelectItem>
+                    <SelectItem value="game-reviews">Game Reviews</SelectItem>
+                    <SelectItem value="movie-reviews">Movie Reviews</SelectItem>
+                    <SelectItem value="tv-reviews">TV Reviews</SelectItem>
+                    <SelectItem value="comic-reviews">Comic Reviews</SelectItem>
+                    <SelectItem value="tech-reviews">Tech Reviews</SelectItem>
+                    <SelectItem value="interviews">Interviews</SelectItem>
+                    <SelectItem value="spotlights">Spotlights</SelectItem>
+                    <SelectItem value="top-lists">Top Lists</SelectItem>
+                    <SelectItem value="opinions">Opinions</SelectItem>
+                    <SelectItem value="guides">Guides</SelectItem>
+                    <SelectItem value="wiki">Wiki</SelectItem>
+                    <SelectItem value="videos">Videos</SelectItem>
+                    <SelectItem value="nintendo">Nintendo</SelectItem>
+                    <SelectItem value="xbox">Xbox</SelectItem>
+                    <SelectItem value="playstation">PlayStation</SelectItem>
+                    <SelectItem value="pc-gaming">PC Gaming</SelectItem>
+                    <SelectItem value="mobile-gaming">Mobile Gaming</SelectItem>
+                    <SelectItem value="tech">Tech</SelectItem>
+                    <SelectItem value="anime">Anime</SelectItem>
+                    <SelectItem value="cosplay">Cosplay</SelectItem>
+                    <SelectItem value="science-comics">Science & Comics</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <Input
-                  placeholder="Add tags (comma separated)..."
+                  placeholder="gaming, review, nintendo, zelda..."
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Author</Label>
-                <Input value={author || 'Auto-filled from your account'} disabled className="text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Separate tags with commas</p>
               </div>
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  id="featured"
+                  id="homepage"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
                   className="rounded"
                 />
-                <Label htmlFor="featured">Feature on Homepage</Label>
+                <Label htmlFor="homepage">Show on Homepage</Label>
               </div>
               {type.includes("Review") && (
                 <>

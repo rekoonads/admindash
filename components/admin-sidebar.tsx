@@ -3,7 +3,34 @@
 import type * as React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Home, FileText, MessageCircle, ImageIcon, BarChart3, Users, Settings, ChevronDown, Shield, Gamepad2, Star, Video, BookOpen, Newspaper, Tv, Smartphone, Monitor, Headphones } from "lucide-react"
+import {
+  Home,
+  Star,
+  BookOpen,
+  Gamepad2,
+  Monitor,
+  MessageSquare,
+  List,
+  Phone,
+  Share2,
+  ChevronDown,
+  Newspaper,
+  Video,
+  Lightbulb,
+  MessageCircle,
+  HelpCircle,
+  Globe,
+  Tv,
+  Palette,
+  Atom,
+  Mail,
+  Info,
+  FileText,
+  Shield,
+  Cookie,
+  Briefcase,
+  Rss,
+} from "lucide-react"
 
 import {
   Sidebar,
@@ -25,137 +52,181 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/admin",
+      title: "Home",
+      url: "/",
       icon: Home,
     },
     {
-      title: "Gaming Content",
-      icon: Gamepad2,
+      title: "Latest Updates",
+      url: "/latest-updates",
+      icon: Newspaper,
+    },
+    {
+      title: "Reviews",
+      icon: Star,
       items: [
         {
-          title: "Gaming News",
-          url: "/admin/content/news",
+          title: "All Reviews",
+          url: "/reviews",
         },
         {
           title: "Game Reviews",
-          url: "/admin/content/reviews",
+          url: "/reviews/games",
         },
         {
-          title: "Game Guides",
-          url: "/admin/content/game-guides",
+          title: "Movie Reviews",
+          url: "/reviews/movies",
         },
         {
-          title: "Gaming Videos",
-          url: "/admin/content/videos",
+          title: "TV Reviews",
+          url: "/reviews/tv",
+        },
+        {
+          title: "Comic Reviews",
+          url: "/reviews/comics",
+        },
+        {
+          title: "Tech Reviews",
+          url: "/reviews/tech",
         },
       ],
     },
     {
-      title: "Platform Content",
-      icon: Monitor,
+      title: "Interviews",
+      url: "/interviews",
+      icon: MessageCircle,
+    },
+    {
+      title: "Spotlights",
+      url: "/spotlights",
+      icon: Lightbulb,
+    },
+    {
+      title: "Top Lists",
+      url: "/top-lists",
+      icon: List,
+    },
+    {
+      title: "Opinions",
+      url: "/opinions",
+      icon: MessageSquare,
+    },
+    {
+      title: "Guides",
+      url: "/guides",
+      icon: HelpCircle,
+    },
+    {
+      title: "Wiki",
+      url: "/wiki",
+      icon: Globe,
+    },
+    {
+      title: "Videos",
+      url: "/videos",
+      icon: Video,
+    },
+    {
+      title: "Gaming",
+      icon: Gamepad2,
       items: [
         {
-          title: "PC Gaming",
-          url: "/admin/content/pc",
-        },
-        {
-          title: "PlayStation 5",
-          url: "/admin/content/ps5",
+          title: "Nintendo",
+          url: "/gaming/nintendo",
         },
         {
           title: "Xbox",
-          url: "/admin/content/xbox",
+          url: "/gaming/xbox",
         },
         {
-          title: "Nintendo Switch",
-          url: "/admin/content/nintendo-switch",
+          title: "PlayStation",
+          url: "/gaming/playstation",
         },
         {
-          title: "Mobile Gaming",
-          url: "/admin/content/mobile",
+          title: "PC",
+          url: "/gaming/pc",
+        },
+        {
+          title: "Mobile",
+          url: "/gaming/mobile",
         },
       ],
     },
     {
-      title: "Entertainment",
-      icon: Tv,
+      title: "Tech",
+      url: "/tech",
+      icon: Monitor,
+    },
+    {
+      title: "Anime & Manga",
+      icon: Palette,
       items: [
         {
-          title: "Anime",
-          url: "/admin/content/anime",
+          title: "All Anime Coverage",
+          url: "/anime-manga/anime",
         },
         {
-          title: "Comics",
-          url: "/admin/content/comics",
-        },
-        {
-          title: "Esports",
-          url: "/admin/content/esports",
+          title: "Cosplay",
+          url: "/anime-manga/cosplay",
         },
       ],
     },
     {
-      title: "Tech & Science",
-      icon: Smartphone,
+      title: "Science & Comics",
+      url: "/science-comics",
+      icon: Atom,
+    },
+    {
+      title: "Follow Koodos",
+      icon: Share2,
       items: [
         {
-          title: "Tech News",
-          url: "/admin/content/tech",
+          title: "Social Media Links",
+          url: "/follow/social",
         },
         {
-          title: "Science",
-          url: "/admin/content/science",
+          title: "Newsletter",
+          url: "/follow/newsletter",
         },
       ],
     },
     {
-      title: "Community",
-      icon: MessageCircle,
+      title: "More",
+      icon: Info,
       items: [
         {
-          title: "Comments",
-          url: "/admin/community/comments",
+          title: "About Koodos",
+          url: "/more/about",
         },
         {
-          title: "User Profiles",
-          url: "/admin/community/profiles",
+          title: "Contact Editorial Team",
+          url: "/more/contact",
+        },
+        {
+          title: "Advertise With Us",
+          url: "/more/advertise",
+        },
+        {
+          title: "Press",
+          url: "/more/press",
+        },
+        {
+          title: "User Agreement",
+          url: "/more/terms",
+        },
+        {
+          title: "Privacy Policy",
+          url: "/more/privacy",
+        },
+        {
+          title: "Cookie Policy",
+          url: "/more/cookies",
+        },
+        {
+          title: "RSS",
+          url: "/more/rss",
         },
       ],
-    },
-    {
-      title: "Media Library",
-      url: "/admin/media",
-      icon: ImageIcon,
-    },
-    {
-      title: "Analytics",
-      url: "/admin/analytics",
-      icon: BarChart3,
-    },
-    {
-      title: "Users",
-      url: "/admin/users",
-      icon: Users,
-    },
-    {
-      title: "Marketing",
-      icon: BarChart3,
-      items: [
-        {
-          title: "Campaigns",
-          url: "/admin/marketing/campaigns",
-        },
-        {
-          title: "Audience",
-          url: "/admin/audience",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: Settings,
     },
   ],
 }
@@ -181,11 +252,11 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             <SidebarMenuButton size="lg" asChild>
               <a href="/admin" onClick={(e) => handleNavigation("/admin", e)}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-white">
-                  <Shield className="size-4" />
+                  <span className="text-white font-bold text-sm">K</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">KOODOS Admin</span>
-                  <span className="truncate text-xs">Gaming Content Hub</span>
+                  <span className="truncate font-semibold">KOODOS</span>
+                  <span className="truncate text-xs">Gaming Hub</span>
                 </div>
               </a>
             </SidebarMenuButton>

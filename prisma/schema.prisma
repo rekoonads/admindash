@@ -61,9 +61,7 @@ model Article {
   author           String         @default("Admin")
   status           article_status @default(DRAFT)
   type             article_type   @default(NEWS)
-  category_id      String
-  category         Category       @relation(fields: [category_id], references: [id])
-  categories       ArticleCategory[]
+  content_type     String         @default("latest-updates")
   views            Int            @default(0)
   likes            Int            @default(0)
   featured_image   String?
@@ -74,6 +72,7 @@ model Article {
   review_score     Float?
   is_breaking      Boolean        @default(false)
   is_featured      Boolean        @default(false)
+  show_on_homepage Boolean        @default(false)
   read_time        Int?
   published_at     DateTime?
   created_at       DateTime       @default(now())
@@ -88,7 +87,6 @@ model Article {
   pros             String[]       @default([])
   publisher        String?
   shares           Int            @default(0)
-  subcategory      String?
   verdict          String?
   purchase_link    String?
   price            String?
@@ -98,17 +96,19 @@ model Article {
   media            Media[]
   reactions        reactions[]
 
-  @@index([category_id])
+  @@index([content_type])
   @@index([created_at(sort: Desc)])
   @@index([game_title])
   @@index([genre])
   @@index([is_breaking])
   @@index([is_featured])
+  @@index([show_on_homepage])
   @@index([platform])
   @@index([published_at(sort: Desc)])
   @@index([slug])
   @@index([status])
   @@index([type])
+  @@index([tags])
   @@index([views(sort: Desc)])
   @@map("articles")
 }
@@ -266,12 +266,19 @@ enum article_type {
   VIDEO
   WIKI
   LIST
+  SPOTLIGHT
   ANIME
+  MANGA
   COMICS
   COSPLAY
   ESPORTS
   TECH
   SCIENCE
+  MOVIE_REVIEW
+  TV_REVIEW
+  GAME_REVIEW
+  TECH_REVIEW
+  COMIC_REVIEW
 }
 
 enum banner_position {

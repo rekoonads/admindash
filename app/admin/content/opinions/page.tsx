@@ -5,13 +5,13 @@ import { ContentEditor } from "@/components/content-editor"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
-export default function AnimePage() {
+export default function OpinionsPage() {
   const [showEditor, setShowEditor] = useState(false)
 
   if (showEditor) {
     return (
       <ContentEditor
-        type="anime"
+        type="opinions"
         onSave={() => setShowEditor(false)}
         onPublish={() => setShowEditor(false)}
       />
@@ -22,12 +22,12 @@ export default function AnimePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Anime Content</h1>
-          <p className="text-muted-foreground">Manage anime reviews and coverage</p>
+          <h1 className="text-3xl font-bold">Opinions</h1>
+          <p className="text-muted-foreground">Manage editorial opinions and commentary</p>
         </div>
         <Button onClick={() => setShowEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Anime Article
+          New Opinion
         </Button>
       </div>
     </div>

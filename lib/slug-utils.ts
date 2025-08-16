@@ -55,3 +55,29 @@ export async function ensureUniqueArticleSlug(
     counter++
   }
 }
+
+export function getContentTypeFromPath(path: string): string {
+  const pathMap: Record<string, string> = {
+    '/latest-updates': 'NEWS',
+    '/reviews': 'REVIEW',
+    '/reviews/games': 'GAME_REVIEW',
+    '/reviews/movies': 'MOVIE_REVIEW',
+    '/reviews/tv': 'TV_REVIEW',
+    '/reviews/comics': 'COMIC_REVIEW',
+    '/reviews/tech': 'TECH_REVIEW',
+    '/interviews': 'INTERVIEW',
+    '/spotlights': 'SPOTLIGHT',
+    '/top-lists': 'LIST',
+    '/opinions': 'OPINION',
+    '/guides': 'GUIDE',
+    '/wiki': 'WIKI',
+    '/videos': 'VIDEO',
+    '/anime-manga': 'ANIME',
+    '/anime-manga/anime': 'ANIME',
+    '/anime-manga/cosplay': 'COSPLAY',
+    '/science-comics': 'SCIENCE',
+    '/tech': 'TECH'
+  }
+  
+  return pathMap[path] || 'NEWS'
+}
