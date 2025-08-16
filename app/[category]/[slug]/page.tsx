@@ -22,7 +22,7 @@ export default async function DynamicArticlePage({ params }: PageProps) {
   
   console.log('Article found:', {
     title: article.title,
-    categorySlug: article.category?.slug,
+    categorySlug: article.category?.slug || article.category_id,
     requestedCategory: category,
     status: article.status
   })
