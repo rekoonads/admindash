@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { AdminContentSidebar } from "@/components/admin-content-sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useUser } from "@clerk/nextjs"
@@ -39,7 +39,7 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      <AdminSidebar />
+      <AdminContentSidebar />
       <SidebarInset>
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-4 p-2 sm:p-4 pt-0">{children}</div>

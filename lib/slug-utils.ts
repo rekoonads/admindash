@@ -1,30 +1,36 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from './prisma'
 
-// Generate slug from name
-export function generateSlug(name: string): string {
-  return name
+/**
+ * Generate a URL-friendly slug from a title
+ */
+export function generateSlug(title: string): string {
+  return title
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
-    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    // Replace spaces and special characters with hyphens
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    // Limit length
+    .substring(0, 100)
 }
 
-// Ensure unique category slug
-export async function ensureUniqueCategorySlug(
-  baseSlug: string,
-  excludeId?: string
-): Promise<string> {
+/**
+ * Ensure article slug is unique by appending numbers if needed
+ */
+export async function ensureUniqueArticleSlug(baseSlug: string, excludeId?: string): Promise<string> {
   let slug = baseSlug
   let counter = 1
 
   while (true) {
-    const existing = await prisma.category.findUnique({
-      where: { slug },
-      select: { id: true }
+    const existing = await prisma.article.findFirst({
+      where: {
+        slug,
+        ...(excludeId && { id: { not: excludeId } })
+      }
     })
 
-    if (!existing || (excludeId && existing.id === excludeId)) {
+    if (!existing) {
       return slug
     }
 
@@ -33,21 +39,22 @@ export async function ensureUniqueCategorySlug(
   }
 }
 
-// Ensure unique article slug
-export async function ensureUniqueArticleSlug(
-  baseSlug: string,
-  excludeId?: string
-): Promise<string> {
+/**
+ * Ensure category slug is unique
+ */
+export async function ensureUniqueCategorySlug(baseSlug: string, excludeId?: string): Promise<string> {
   let slug = baseSlug
   let counter = 1
 
   while (true) {
-    const existing = await prisma.article.findUnique({
-      where: { slug },
-      select: { id: true }
+    const existing = await prisma.category.findFirst({
+      where: {
+        slug,
+        ...(excludeId && { id: { not: excludeId } })
+      }
     })
 
-    if (!existing || (excludeId && existing.id === excludeId)) {
+    if (!existing) {
       return slug
     }
 
@@ -56,28 +63,29 @@ export async function ensureUniqueArticleSlug(
   }
 }
 
-export function getContentTypeFromPath(path: string): string {
-  const pathMap: Record<string, string> = {
-    '/latest-updates': 'NEWS',
-    '/reviews': 'REVIEW',
-    '/reviews/games': 'GAME_REVIEW',
-    '/reviews/movies': 'MOVIE_REVIEW',
-    '/reviews/tv': 'TV_REVIEW',
-    '/reviews/comics': 'COMIC_REVIEW',
-    '/reviews/tech': 'TECH_REVIEW',
-    '/interviews': 'INTERVIEW',
-    '/spotlights': 'SPOTLIGHT',
-    '/top-lists': 'LIST',
-    '/opinions': 'OPINION',
-    '/guides': 'GUIDE',
-    '/wiki': 'WIKI',
-    '/videos': 'VIDEO',
-    '/anime-manga': 'ANIME',
-    '/anime-manga/anime': 'ANIME',
-    '/anime-manga/cosplay': 'COSPLAY',
-    '/science-comics': 'SCIENCE',
-    '/tech': 'TECH'
-  }
+/**
+ * Generate category-based URL path
+ */
+export function generateArticleUrl(categorySlug: string, articleSlug: string): string {
+  return `/${categorySlug}/${articleSlug}`
+}
+
+/**
+ * Parse article URL to extract category and article slugs
+ */
+export function parseArticleUrl(url: string): { categorySlug: string; articleSlug: string } | null {
+  const match = url.match(/^\/([^\/]+)\/([^\/]+)$/)
+  if (!match) return null
   
-  return pathMap[path] || 'NEWS'
+  return {
+    categorySlug: match[1],
+    articleSlug: match[2]
+  }
+}
+
+/**
+ * Validate slug format
+ */
+export function isValidSlug(slug: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
 }
