@@ -42,7 +42,9 @@ export default function AdminDashboard() {
           const categoryStats = {}
           articlesData.forEach(article => {
             // Ensure we get a string value, not an object
-            const categoryName = typeof article.category_id === 'string' 
+            const categoryName = typeof article.category === 'object' && article.category?.name 
+              ? article.category.name 
+              : typeof article.category_id === 'string' 
               ? article.category_id 
               : 'Other'
             categoryStats[categoryName] = (categoryStats[categoryName] || 0) + 1
@@ -63,7 +65,9 @@ export default function AdminDashboard() {
             .slice(0, 4)
             .map(article => ({
               title: article.title || 'Untitled',
-              category: typeof article.category_id === 'string' 
+              category: typeof article.category === 'object' && article.category?.name 
+                ? article.category.name 
+                : typeof article.category_id === 'string' 
                 ? article.category_id.replace('-', ' ') 
                 : 'General',
               views: (article.views || 0).toLocaleString(),

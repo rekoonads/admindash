@@ -132,7 +132,7 @@ export async function createArticle(formData: FormData) {
         type: type as any,
         status: status as any,
         category_id: categoryExists.id,
-        author: authorName,
+        author_name: authorName,
         platform: platform ? [platform as any] : [],
         genre: genre ? [genre as any] : [],
         review_score: rating ? parseFloat(rating) : null,
@@ -146,9 +146,7 @@ export async function createArticle(formData: FormData) {
         is_featured: isFeatured,
         purchase_link: purchaseLink || null,
         price: price || null,
-        categories: {
-          create: selectedCategories.map(cat => ({ category: cat }))
-        }
+        category_tags: selectedCategories
       }
     });
 
@@ -189,8 +187,7 @@ export async function getArticles(filters?: {
     const articles = await prisma.article.findMany({
       where,
       include: {
-        category: true,
-        categories: true
+        category: true
       },
       orderBy: { created_at: "desc" },
       take: filters?.limit || undefined,
@@ -210,7 +207,7 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
     if (categorySlug) {
       where.OR = [
         { category_id: categorySlug },
-        { categories: { some: { category: categorySlug } } }
+        { category: { slug: categorySlug } }
       ];
     }
     if (type) where.type = type;
@@ -219,8 +216,7 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
     const articles = await prisma.article.findMany({
       where,
       include: { 
-        category: true,
-        categories: true 
+        category: true
       },
       orderBy: { published_at: "desc" },
       take: limit || 20,
@@ -245,8 +241,7 @@ export async function getArticleBySlug(slug: string) {
             name: true,
             slug: true
           }
-        },
-        categories: true
+        }
       }
     });
     
@@ -262,8 +257,7 @@ export async function getArticleBySlug(slug: string) {
       await prisma.article.update({
         where: { id: article.id },
         data: { 
-          views: { increment: 1 },
-          updated_at: new Date()
+          views_count: { increment: 1 }
         },
       });
     }
@@ -337,8 +331,7 @@ export async function updatePost(id: string, formData: FormData) {
       where: { id },
       data: updateData,
       include: {
-        category: true,
-        categories: true
+        category: true
       }
     });
 
@@ -405,9 +398,9 @@ export async function getPostBySlug(slug: string) {
 
 export async function incrementPostViews(id: string) {
   try {
-    await (prisma.article as any).update({
+    await prisma.article.update({
       where: { id },
-      data: { views: { increment: 1 } },
+      data: { views_count: { increment: 1 } },
     });
   } catch (error) {
     console.error('Error in incrementPostViews:', error);

@@ -3,14 +3,14 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 
 interface PageProps {
-  params: {
+  params: Promise<{
     category: string
     slug: string
-  }
+  }>
 }
 
 export default async function DynamicArticlePage({ params }: PageProps) {
-  const { category, slug } = params
+  const { category, slug } = await params
   
   // Get article
   const article = await getArticleBySlug(slug)
@@ -22,19 +22,19 @@ export default async function DynamicArticlePage({ params }: PageProps) {
   
   console.log('Article found:', {
     title: article.title,
-    categorySlug: article.category_id,
+    categorySlug: article.category?.slug || article.category_id,
     requestedCategory: category,
     status: article.status
   })
   
   // For now, allow all articles to show regardless of category mismatch
   // TODO: Re-enable strict checking once URLs are working
-  // if (article.category_id !== category) {
+  // if (article.category?.slug !== category) {
   //   notFound()
   // }
 
   // Get category display name
-  const categoryName = category
+  const categoryName = article.category?.name || category
   
   // Category-specific styling
   const getCategoryStyle = (categorySlug: string) => {
@@ -96,11 +96,11 @@ export default async function DynamicArticlePage({ params }: PageProps) {
               <p className="text-xl text-gray-600 mb-4">{article.excerpt}</p>
             )}
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>By {article.author}</span>
+              <span>By {article.author_name}</span>
               <span>•</span>
               <span>{new Date(article.created_at).toLocaleDateString()}</span>
               <span>•</span>
-              <span>{article.views} views</span>
+              <span>{article.views_count} views</span>
             </div>
           </header>
           

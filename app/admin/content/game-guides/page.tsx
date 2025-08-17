@@ -51,7 +51,7 @@ export default function GameGuidesPage() {
             author: article.author || 'Admin',
             status: article.status.toLowerCase(),
             views: article.views || 0,
-            category: 'Game Guide',
+            category: article.category?.name || 'Game Guide',
             createdAt: new Date(article.created_at).toLocaleDateString(),
             slug: article.slug
           }))

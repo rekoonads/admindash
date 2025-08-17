@@ -17,15 +17,16 @@ export async function OPTIONS() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    console.log('Fetching article with slug:', params.slug)
-    const article = await getArticleBySlug(params.slug)
+    const { slug } = await params
+    console.log('Fetching article with slug:', slug)
+    const article = await getArticleBySlug(slug)
     console.log('Article found:', !!article)
     
     if (!article) {
-      console.log('Article not found for slug:', params.slug)
+      console.log('Article not found for slug:', slug)
       return NextResponse.json({ error: 'Article not found' }, { 
         status: 404,
         headers: {
@@ -46,8 +47,8 @@ export async function GET(
       featuredImage: article.featured_image,
       videoUrl: article.video_url,
       categoryId: article.category_id,
-      author: article.author,
-      views: article.views,
+      author: article.author_name,
+      views: article.views_count,
       slug: article.slug,
       tags: article.tags || [],
       createdAt: article.created_at,

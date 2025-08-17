@@ -74,6 +74,8 @@ model Article {
   excerpt           String?
   slug              String         @unique
   author_id         String
+  author_name       String?
+  category_id       String?
   status            article_status @default(DRAFT)
   type              article_type   @default(NEWS)
   content_type      String         @default("latest-updates")
@@ -132,6 +134,7 @@ model Article {
   
   // Relations
   author            User           @relation(fields: [author_id], references: [id])
+  category          Category?      @relation(fields: [category_id], references: [id])
   comments          Comment[]
   reactions         Reaction[]
   bookmarks         Bookmark[]
@@ -142,6 +145,7 @@ model Article {
   notifications     Notification[]
 
   @@index([author_id])
+  @@index([category_id])
   @@index([slug])
   @@index([status])
   @@index([type])
@@ -458,6 +462,7 @@ model Category {
   
   parent           Category?  @relation("CategoryHierarchy", fields: [parent_id], references: [id])
   children         Category[] @relation("CategoryHierarchy")
+  articles         Article[]
 
   @@index([is_active])
   @@index([parent_id])
