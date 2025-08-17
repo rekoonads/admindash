@@ -34,14 +34,14 @@ export default function Page() {
 
         {/* Sign In Form */}
         <div className={`bg-white rounded-2xl shadow-xl border border-gray-200 ${isMobile ? 'p-4' : 'p-8'}`}>
-          <SignIn 
-            redirectUrl="/admin" 
-            signUpUrl={null}
-            appearance={{
-              elements: {
-                footerAction: { display: 'none' }
-              }
-            }}
+          <SignIn  
+            redirectUrl="/admin"  
+            appearance={{  
+              elements: { 
+                footerAction: { display: 'none' },
+                footerActionLink: { display: 'none' }
+              }  
+            }}  
           />
         </div>
 
