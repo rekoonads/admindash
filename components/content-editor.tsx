@@ -150,11 +150,7 @@ export function ContentEditor({
       formData.append("title", title.trim());
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
-      // Author is handled server-side from Clerk user data
-      formData.append("categoryId", finalCategory);
-      console.log("Sending categoryId to server:", category);
-      formData.append("categories", JSON.stringify(selectedCategories));
-      console.log("Selected categories:", selectedCategories);
+      
       // Map content type to valid Prisma enum and ensure category matches
       let articleType = "NEWS"; // default
       let finalCategory = category;
@@ -188,6 +184,11 @@ export function ContentEditor({
         finalCategory = "news";
       }
       
+      // Author is handled server-side from Clerk user data
+      formData.append("categoryId", finalCategory);
+      console.log("Sending categoryId to server:", finalCategory);
+      formData.append("categories", JSON.stringify(selectedCategories));
+      console.log("Selected categories:", selectedCategories);
       formData.append("type", articleType);
       formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);
       formData.append("tags", tags);
