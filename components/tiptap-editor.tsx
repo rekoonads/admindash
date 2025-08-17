@@ -43,7 +43,7 @@ import {
   AlignJustify,
   LinkIcon,
   ImageIcon,
-
+  TableIcon,
   Palette,
   Highlighter,
   FileCode,
