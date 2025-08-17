@@ -16,8 +16,7 @@ export default clerkMiddleware((auth, req) => {
 
   // Protect admin routes
   if (isAdminRoute(req)) {
-    const { protect } = auth()
-    protect()
+    auth().protect()
   }
 })
 

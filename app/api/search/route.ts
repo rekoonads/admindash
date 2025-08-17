@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { content: { contains: query, mode: 'insensitive' } },
-          { gameTitle: { contains: query, mode: 'insensitive' } },
+          { game_title: { contains: query, mode: 'insensitive' } },
         ],
         status: 'PUBLISHED'
       },
@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
         title: true,
         slug: true,
         excerpt: true,
-        featuredImage: true,
+        featured_image: true,
         category: true,
         type: true,
-        publishedAt: true
+        published_at: true
       },
       take: 20
     })

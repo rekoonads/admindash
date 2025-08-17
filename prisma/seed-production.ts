@@ -10,9 +10,10 @@ async function main() {
     where: { email: "admin@koodos.in" },
     update: {},
     create: {
-      clerkId: "admin_clerk_id",
+      clerk_id: "admin_clerk_id",
       email: "admin@koodos.in",
-      name: "Admin User",
+      first_name: "Admin",
+      last_name: "User",
       role: "ADMIN",
     },
   });
@@ -70,11 +71,11 @@ async function main() {
 </ul>`,
         excerpt: "Welcome to Koodos - your ultimate destination for gaming and tech content.",
         status: "PUBLISHED",
-        type: "ARTICLE",
-        featured: true,
-        authorId: adminUser.id,
-        categoryId: categories[0].id,
-        publishedAt: new Date(),
+        type: "NEWS",
+        is_featured: true,
+        author_id: adminUser.id,
+        category_id: categories[0].id,
+        published_at: new Date(),
       },
     }),
   ]);
@@ -90,7 +91,7 @@ async function main() {
         position: "TOP",
         title: "Welcome to Koodos",
         content: "Your ultimate gaming and tech destination",
-        isActive: true,
+        is_active: true,
       },
     }),
   ]);

@@ -75,9 +75,7 @@ export async function POST(request: NextRequest) {
       data: {
         content,
         article_id: articleId,
-        author: author || 'Anonymous',
-        user_id: user?.id || 'anonymous',
-        email: user?.email
+        author_id: user?.id || 'anonymous'
       }
     })
 

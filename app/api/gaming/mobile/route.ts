@@ -7,8 +7,8 @@ export async function GET() {
       where: {
         status: "PUBLISHED",
         OR: [
-          { platform: { has: "MOBILE_IOS" } },
-          { platform: { has: "MOBILE_ANDROID" } }
+          { platforms: { has: "MOBILE_IOS" } },
+          { platforms: { has: "MOBILE_ANDROID" } }
         ]
       },
       orderBy: { published_at: "desc" },
