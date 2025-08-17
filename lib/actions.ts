@@ -162,7 +162,7 @@ export async function createArticle(formData: FormData) {
         video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        category_id: categoryExists.id,
+        category_id: categoryExists.slug,
         author_id: user?.id || actualUserId,
         author_name: authorName,
         platforms: platform ? [platform as any] : [],

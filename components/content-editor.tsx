@@ -625,8 +625,8 @@ export function ContentEditor({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Content Type</Label>
-                <Select value={type} onValueChange={(value) => setCategory(value)}>
+                <Label>Category</Label>
+                <Select value={category} onValueChange={(value) => setCategory(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select content type" />
                   </SelectTrigger>

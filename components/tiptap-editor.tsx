@@ -78,7 +78,9 @@ export function TiptapEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+      }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
