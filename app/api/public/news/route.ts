@@ -37,14 +37,14 @@ export async function GET(request: Request) {
         post.excerpt ||
         post.content.replace(/<[^>]*>/g, "").substring(0, 150) + "...",
       content: post.content,
-      featuredImage: post.featuredImage,
+      featuredImage: post.featured_image,
       category: post.category,
       author: post.author,
       views: post.views,
       slug: post.slug,
       tags: post.tags,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
     }));
 
     // If featured is requested, return the most recent post first

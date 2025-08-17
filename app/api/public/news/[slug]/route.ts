@@ -46,14 +46,14 @@ export async function GET(request: Request, { params }: RouteParams) {
       title: post.title,
       excerpt: post.excerpt,
       content: post.content,
-      featuredImage: post.featuredImage,
+      featuredImage: post.featured_image,
       category: post.category,
-      author: post.author,
-      views: post.views + 1, // Include the incremented view
+      author: (post as any).author || (post as any).author_name || 'Unknown Author',
+      views: (post as any).views || (post as any).views_count || 0 + 1, // Include the incremented view
       slug: post.slug,
       tags: post.tags,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
     };
 
     const response = NextResponse.json({

@@ -144,8 +144,8 @@ export default function NewsPage() {
           initialTitle={editingPost?.title}
           initialContent={editingPost?.content}
           initialExcerpt={editingPost?.excerpt || ""}
-          initialCategory={editingPost?.category?.slug || editingPost?.category_id}
-          initialStatus={editingPost?.status}
+          initialCategory={editingPost?.category?.slug || editingPost?.category_id || undefined}
+          initialStatus={editingPost?.status as "DRAFT" | "PUBLISHED" | "HIDDEN" | undefined}
           editingPost={editingPost}
           onSave={handleSave}
           onPublish={handlePublish}

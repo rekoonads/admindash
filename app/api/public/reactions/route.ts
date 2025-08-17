@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Article ID required' }, { status: 400 })
     }
 
-    const reactions = await prisma.reactions.groupBy({
+    const reactions = await prisma.reaction.groupBy({
       by: ['type'],
       where: { article_id: articleId },
       _count: { type: true }
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     if (userId) {
       const user = await prisma.user.findUnique({ where: { clerk_id: userId } })
       if (user) {
-        userReactions = await prisma.reactions.findMany({
+        userReactions = await prisma.reaction.findMany({
           where: { article_id: articleId, user_id: user.id }
         })
       }
@@ -89,20 +89,19 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const existingReaction = await prisma.reactions.findUnique({
+    const existingReaction = await prisma.reaction.findUnique({
       where: {
-        user_id_article_id_type: {
+        user_id_article_id: {
           user_id: user.id,
-          article_id: articleId,
-          type: type as any
+          article_id: articleId
         }
       }
     })
 
     if (existingReaction) {
-      await prisma.reactions.delete({ where: { id: existingReaction.id } })
+      await prisma.reaction.delete({ where: { id: existingReaction.id } })
     } else {
-      await prisma.reactions.create({
+      await prisma.reaction.create({
         data: {
           type: type as any,
           user_id: user.id,
