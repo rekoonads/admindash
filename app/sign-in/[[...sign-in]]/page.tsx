@@ -2,9 +2,20 @@
 
 import { SignIn } from '@clerk/nextjs'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Page() {
   const isMobile = useIsMobile()
+  const { isSignedIn, isLoaded } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      window.location.href = '/admin'
+    }
+  }, [isSignedIn, isLoaded])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-3 sm:p-4 md:p-6">
@@ -23,34 +34,7 @@ export default function Page() {
 
         {/* Sign In Form */}
         <div className={`bg-white rounded-2xl shadow-xl border border-gray-200 ${isMobile ? 'p-4' : 'p-8'}`}>
-          <SignIn 
-            forceRedirectUrl="/admin"
-            signUpForceRedirectUrl="/admin"
-            appearance={{
-              variables: {
-                colorPrimary: "#000000",
-                colorText: "#000000",
-                colorTextSecondary: "#6b7280",
-                colorBackground: "#ffffff",
-                colorInputBackground: "#ffffff",
-                colorInputText: "#000000",
-                borderRadius: "0.5rem"
-              },
-              elements: {
-                rootBox: "w-full",
-                card: "shadow-none border-none bg-transparent p-0",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton: "bg-gray-50 border border-gray-200 hover:bg-gray-100 text-black",
-                formButtonPrimary: "bg-black hover:bg-gray-800 text-white border-none",
-                formFieldInput: "border-gray-200 text-black",
-                formFieldLabel: "text-black",
-                footerAction: "hidden",
-                identityPreviewText: "text-black",
-                identityPreviewEditButton: "text-black"
-              }
-            }}
-          />
+          <SignIn afterSignInUrl="/admin" afterSignUpUrl="/admin" />
         </div>
 
         {/* Footer */}
