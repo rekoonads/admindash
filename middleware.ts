@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 const isApiRoute = createRouteMatcher(['/api(.*)'])
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   // Handle CORS for API routes
   if (isApiRoute(req)) {
     const response = NextResponse.next()
