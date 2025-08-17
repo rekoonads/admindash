@@ -1,4 +1,6 @@
 "use client"
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "react-resizable-panels"
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+// Placeholder for resizable components
+export const ResizablePanelGroup = ({ children, ...props }: any) => <div {...props}>{children}</div>
+export const ResizablePanel = ({ children, ...props }: any) => <div {...props}>{children}</div>
+export const ResizableHandle = ({ ...props }: any) => <div {...props} />
