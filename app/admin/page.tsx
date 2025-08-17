@@ -39,8 +39,8 @@ export default function AdminDashboard() {
           const articlesData = await articlesRes.json()
           
           // Process content stats by category
-          const categoryStats = {}
-          articlesData.forEach(article => {
+          const categoryStats: any = {}
+          articlesData.forEach((article: any) => {
             // Ensure we get a string value, not an object
             const categoryName = typeof article.category === 'object' && article.category?.name 
               ? article.category.name 
@@ -60,10 +60,10 @@ export default function AdminDashboard() {
           
           // Get trending content (top viewed articles)
           const trending = articlesData
-            .filter(article => article.status === 'PUBLISHED')
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .filter((article: any) => article.status === 'PUBLISHED')
+            .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
             .slice(0, 4)
-            .map(article => ({
+            .map((article: any) => ({
               title: article.title || 'Untitled',
               category: typeof article.category === 'object' && article.category?.name 
                 ? article.category.name 
@@ -78,9 +78,9 @@ export default function AdminDashboard() {
           
           // Get recent activity
           const recent = articlesData
-            .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+            .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
             .slice(0, 5)
-            .map(article => ({
+            .map((article: any) => ({
               action: article.status === 'PUBLISHED' ? 'Published' : 'Updated',
               title: article.title,
               time: new Date(article.updated_at).toLocaleString(),
@@ -97,9 +97,10 @@ export default function AdminDashboard() {
     fetchDashboardData()
   }, [])
 
-  const [contentStats, setContentStats] = useState([])
-  const [trendingContent, setTrendingContent] = useState([])
-  const [recentActivity, setRecentActivity] = useState([])
+  const [contentStats, setContentStats] = useState<any[]>([])
+  const [trendingContent, setTrendingContent] = useState<any[]>([])
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [categoryStats, setCategoryStats] = useState<any>({})
 
   const quickActions = [
     { title: "Create Gaming News", desc: "Write breaking gaming news", href: "/admin/content/news", color: "bg-blue-50 hover:bg-blue-100" },
