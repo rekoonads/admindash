@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 const isApiRoute = createRouteMatcher(['/api(.*)'])
+const isSignInRoute = createRouteMatcher(['/sign-in(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
   // Handle CORS for API routes
@@ -14,16 +15,19 @@ export default clerkMiddleware(async (auth, req) => {
     return response
   }
 
-  // Protect admin routes
-  if (isAdminRoute(req)) {
-    const authResult = await auth()
-    if (authResult.userId) {
-      // User is authenticated, allow access
-    } else {
-      // Redirect to sign-in
-      return NextResponse.redirect(new URL('/sign-in', req.url))
-    }
+  const authResult = await auth()
+  
+  // If user is authenticated and on sign-in page, redirect to admin
+  if (authResult.userId && isSignInRoute(req)) {
+    return NextResponse.redirect(new URL('/admin', req.url))
   }
+
+  // Protect admin routes
+  if (isAdminRoute(req) && !authResult.userId) {
+    return NextResponse.redirect(new URL('/sign-in', req.url))
+  }
+
+  return NextResponse.next()
 })
 
 export const config = {
