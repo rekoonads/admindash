@@ -28,7 +28,7 @@ export default function CategoriesPage() {
   const [newCategoryName, setNewCategoryName] = useState("")
   const [newCategorySlug, setNewCategorySlug] = useState("")
   const [newCategoryDescription, setNewCategoryDescription] = useState("")
-  const [editingCategory, setEditingCategory] = useState(null)
+  const [editingCategory, setEditingCategory] = useState<any>(null)
   const [showDialog, setShowDialog] = useState(false)
 
   const addCategory = () => {
@@ -56,7 +56,7 @@ export default function CategoriesPage() {
     }
   }
 
-  const editCategory = (category) => {
+  const editCategory = (category: any) => {
     setEditingCategory(category)
     setNewCategoryName(category.name)
     setNewCategorySlug(category.slug)
@@ -66,7 +66,7 @@ export default function CategoriesPage() {
 
   const updateCategory = () => {
     setCategories(categories.map(cat => 
-      cat.id === editingCategory.id 
+      cat.id === editingCategory?.id 
         ? { ...cat, name: newCategoryName, slug: newCategorySlug, description: newCategoryDescription }
         : cat
     ))
