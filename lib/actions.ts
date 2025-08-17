@@ -6,7 +6,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function createArticle(formData: FormData) {
   try {
-    const { userId } = await auth();
+    const { userId } = auth();
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -317,7 +317,7 @@ export async function getArticleBySlug(slug: string) {
 
 export async function updateArticleStatus(id: string, status: string) {
   try {
-    const { userId } = await auth();
+    const { userId } = auth();
     if (!userId) {
       throw new Error("Unauthorized");
     }
@@ -349,7 +349,7 @@ export const updatePostStatus = updateArticleStatus;
 
 export async function updatePost(id: string, formData: FormData) {
   try {
-    const { userId } = await auth();
+    const { userId } = auth();
     if (!userId) {
       throw new Error("Authentication required");
     }
