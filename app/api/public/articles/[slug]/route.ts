@@ -52,7 +52,7 @@ export async function GET(
     // Track view
     const userAgent = request.headers.get("user-agent")
     const forwarded = request.headers.get("x-forwarded-for")
-    const ip = forwarded ? forwarded.split(",")[0] : request.ip
+    const ip = forwarded ? forwarded.split(",")[0] : "unknown"
 
     await prisma.view.create({
       data: {

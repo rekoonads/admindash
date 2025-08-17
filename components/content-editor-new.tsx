@@ -14,7 +14,7 @@ import { ArrowLeft, Save, Send, Eye, CalendarIcon, Clock, ImageIcon } from "luci
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
-import { getContentTypeFromPath } from "@/lib/slug-utils";
+
 
 interface ContentEditorProps {
   type: string;
@@ -132,7 +132,7 @@ export function ContentEditor({ type, onSave, onPublish, editingArticle }: Conte
         content: content,
         excerpt: excerpt.trim(),
         content_type: contentType,
-        type: getContentTypeFromPath(`/${contentType}`),
+        type: "NEWS",
         status: status === "SCHEDULED" ? "SCHEDULED" : saveStatus,
         
         // Media

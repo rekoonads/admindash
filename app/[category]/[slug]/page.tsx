@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Eye, Heart, Share2, User } from "lucide-react"
 
 interface ArticlePageProps {
-  params: {
+  params: Promise<{
     category: string
     slug: string
-  }
+  }>
 }
 
 async function getArticle(categorySlug: string, articleSlug: string) {
@@ -63,7 +63,8 @@ async function getArticle(categorySlug: string, articleSlug: string) {
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
-  const article = await getArticle(params.category, params.slug)
+  const { category, slug } = await params
+  const article = await getArticle(category, slug)
   
   if (!article) {
     return {
@@ -102,7 +103,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const article = await getArticle(params.category, params.slug)
+  const { category, slug } = await params
+  const article = await getArticle(category, slug)
 
   if (!article) {
     notFound()

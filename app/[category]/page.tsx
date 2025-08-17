@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Eye } from "lucide-react"
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     page?: string
-  }
+  }>
 }
 
 async function getCategory(slug: string) {
@@ -67,7 +67,8 @@ async function getCategoryArticles(categorySlug: string, page: number = 1) {
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const category = await getCategory(params.category)
+  const { category: categorySlug } = await params
+  const category = await getCategory(categorySlug)
   
   if (!category) {
     return {
@@ -87,14 +88,17 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const category = await getCategory(params.category)
+  const { category: categorySlug } = await params
+  const { page: pageParam } = await searchParams
+  
+  const category = await getCategory(categorySlug)
   
   if (!category) {
     notFound()
   }
 
-  const page = parseInt(searchParams.page || "1")
-  const { articles, total, pages } = await getCategoryArticles(params.category, page)
+  const page = parseInt(pageParam || "1")
+  const { articles, total, pages } = await getCategoryArticles(categorySlug, page)
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -119,7 +123,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
           return (
             <article key={article.id} className="group">
-              <Link href={`/${params.category}/${article.slug}`}>
+              <Link href={`/${categorySlug}/${article.slug}`}>
                 <div className="space-y-4">
                   {/* Featured Image */}
                   {article.featured_image && (
@@ -190,7 +194,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="flex justify-center gap-2 mt-12">
           {page > 1 && (
             <Link
-              href={`/${params.category}?page=${page - 1}`}
+              href={`/${categorySlug}?page=${page - 1}`}
               className="px-4 py-2 border rounded-md hover:bg-muted"
             >
               Previous
@@ -202,7 +206,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             return (
               <Link
                 key={pageNum}
-                href={`/${params.category}?page=${pageNum}`}
+                href={`/${categorySlug}?page=${pageNum}`}
                 className={`px-4 py-2 border rounded-md hover:bg-muted ${
                   pageNum === page ? "bg-primary text-primary-foreground" : ""
                 }`}
@@ -214,7 +218,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
           {page < pages && (
             <Link
-              href={`/${params.category}?page=${page + 1}`}
+              href={`/${categorySlug}?page=${page + 1}`}
               className="px-4 py-2 border rounded-md hover:bg-muted"
             >
               Next
