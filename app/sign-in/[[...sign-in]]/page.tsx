@@ -27,6 +27,7 @@ export default function Page() {
             signUpUrl=""
             fallbackRedirectUrl="/admin"
             routing="path"
+            path="/sign-in"
             appearance={{
               variables: {
                 colorPrimary: "#000000",
