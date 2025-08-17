@@ -255,7 +255,7 @@ export async function getArticleBySlug(slug: string) {
       title: article.title,
       slug: article.slug,
       status: article.status,
-      category: article.category
+      categoryId: article.category_id
     } : 'NOT FOUND')
 
     if (article && article.status === "PUBLISHED") {

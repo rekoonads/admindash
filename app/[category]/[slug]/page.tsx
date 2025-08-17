@@ -22,19 +22,19 @@ export default async function DynamicArticlePage({ params }: PageProps) {
   
   console.log('Article found:', {
     title: article.title,
-    categorySlug: article.category?.slug || article.category_id,
+    categorySlug: article.category_id,
     requestedCategory: category,
     status: article.status
   })
   
   // For now, allow all articles to show regardless of category mismatch
   // TODO: Re-enable strict checking once URLs are working
-  // if (article.category?.slug !== category) {
+  // if (article.category_id !== category) {
   //   notFound()
   // }
 
   // Get category display name
-  const categoryName = article.category?.name || category
+  const categoryName = category
   
   // Category-specific styling
   const getCategoryStyle = (categorySlug: string) => {

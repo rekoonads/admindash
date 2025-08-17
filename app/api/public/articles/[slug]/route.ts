@@ -45,7 +45,7 @@ export async function GET(
       content: article.content,
       featuredImage: article.featured_image,
       videoUrl: article.video_url,
-      category: article.category,
+      categoryId: article.category_id,
       author: article.author,
       views: article.views,
       slug: article.slug,
