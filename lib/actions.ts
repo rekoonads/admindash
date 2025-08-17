@@ -67,18 +67,35 @@ export async function createArticle(formData: FormData) {
       select: { id: true, slug: true, name: true }
     });
     
-    // If category doesn't exist, create it
+    // If category doesn't exist, try to find by ID or create it
     if (!categoryExists) {
-      console.log(`Creating new category: ${categoryId}`);
-      categoryExists = await prisma.category.create({
-        data: {
-          name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' '),
-          slug: categoryId,
-          description: `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' ')} content`,
-          is_active: true
-        },
+      // Try to find by ID first
+      categoryExists = await prisma.category.findFirst({
+        where: { id: categoryId },
         select: { id: true, slug: true, name: true }
       });
+      
+      if (!categoryExists) {
+        console.log(`Creating new category: ${categoryId}`);
+        try {
+          categoryExists = await prisma.category.create({
+            data: {
+              name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' '),
+              slug: categoryId,
+              description: `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' ')} content`,
+              is_active: true
+            },
+            select: { id: true, slug: true, name: true }
+          });
+        } catch (createError) {
+          console.error('Failed to create category, using default:', createError);
+          // Use a default category if creation fails
+          categoryExists = await prisma.category.findFirst({
+            where: { slug: 'news' },
+            select: { id: true, slug: true, name: true }
+          }) || { id: 'news', slug: 'news', name: 'News' };
+        }
+      }
     }
     
     console.log('Found category:', categoryExists);
