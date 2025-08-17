@@ -5,11 +5,12 @@ export const dynamic = 'force-dynamic'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { status } = await request.json()
-    await updateArticleStatus(params.id, status)
+    await updateArticleStatus(id, status)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Admin article PATCH error:', error)

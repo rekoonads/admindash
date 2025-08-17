@@ -3,10 +3,11 @@ import { updateArticleStatus } from '@/lib/actions'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await updateArticleStatus(params.id, 'PUBLISHED')
+    const { id } = await params
+    await updateArticleStatus(id, 'PUBLISHED')
     return NextResponse.json({ success: true, message: 'Article published successfully' })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to publish article' }, { status: 500 })

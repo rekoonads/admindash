@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
     const article = await prisma.article.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
-        author: { select: { name: true, email: true } },
+        author: { select: { first_name: true, last_name: true, email: true } },
         category: { select: { name: true, slug: true } }
       }
     })
@@ -21,7 +22,7 @@ export async function GET(
     // Increment view count
     await prisma.article.update({
       where: { id: article.id },
-      data: { views: { increment: 1 } }
+      data: { views_count: { increment: 1 } }
     })
 
     return NextResponse.json(article)
