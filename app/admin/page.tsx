@@ -39,7 +39,7 @@ export default function AdminDashboard() {
           const articlesData = await articlesRes.json()
           
           // Process content stats by category
-          const categoryStats: any = {}
+          const categoryStats: Record<string, number> = {}
           articlesData.forEach((article: any) => {
             // Ensure we get a string value, not an object
             const categoryName = typeof article.category === 'object' && article.category?.name 
