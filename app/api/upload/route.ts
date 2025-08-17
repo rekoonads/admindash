@@ -4,9 +4,9 @@ import { v2 as cloudinary } from 'cloudinary'
 export const dynamic = 'force-dynamic'
 
 cloudinary.config({
-  cloud_name: 'dpz9k4md5',
-  api_key: '794334345689155',
-  api_secret: 'jkpRcyWQi7wQ2D8d0Xq0MzdoTA8',
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
 export async function POST(request: NextRequest) {

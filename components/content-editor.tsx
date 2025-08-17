@@ -151,20 +151,42 @@ export function ContentEditor({
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
       // Author is handled server-side from Clerk user data
-      formData.append("categoryId", category);
+      formData.append("categoryId", finalCategory);
       console.log("Sending categoryId to server:", category);
       formData.append("categories", JSON.stringify(selectedCategories));
       console.log("Selected categories:", selectedCategories);
-      // Map content type to valid Prisma enum
+      // Map content type to valid Prisma enum and ensure category matches
       let articleType = "NEWS"; // default
-      if (type.includes("Review") || type.includes("review")) articleType = "REVIEW";
-      else if (type.includes("Guide") || type.includes("guide")) articleType = "GUIDE";
-      else if (type.includes("Video") || type.includes("video")) articleType = "VIDEO";
-      else if (type.includes("Anime") || type.includes("anime")) articleType = "ANIME";
-      else if (type.includes("Comics") || type.includes("comics")) articleType = "COMICS";
-      else if (type.includes("Tech") || type.includes("tech")) articleType = "TECH";
-      else if (type.includes("Science") || type.includes("science")) articleType = "SCIENCE";
-      else if (type.includes("Esports") || type.includes("esports")) articleType = "ESPORTS";
+      let finalCategory = category;
+      
+      if (type.includes("Review") || type.includes("review")) {
+        articleType = "REVIEW";
+        finalCategory = "reviews";
+      } else if (type.includes("Guide") || type.includes("guide")) {
+        articleType = "GUIDE";
+        finalCategory = "guides";
+      } else if (type.includes("Video") || type.includes("video")) {
+        articleType = "VIDEO";
+        finalCategory = "videos";
+      } else if (type.includes("Anime") || type.includes("anime")) {
+        articleType = "ANIME";
+        finalCategory = "anime";
+      } else if (type.includes("Comics") || type.includes("comics")) {
+        articleType = "COMICS";
+        finalCategory = "comics";
+      } else if (type.includes("Tech") || type.includes("tech")) {
+        articleType = "TECH";
+        finalCategory = "tech";
+      } else if (type.includes("Science") || type.includes("science")) {
+        articleType = "SCIENCE";
+        finalCategory = "science";
+      } else if (type.includes("Esports") || type.includes("esports")) {
+        articleType = "ESPORTS";
+        finalCategory = "esports";
+      } else if (type.includes("News") || type.includes("news")) {
+        articleType = "NEWS";
+        finalCategory = "news";
+      }
       
       formData.append("type", articleType);
       formData.append("status", status === "SCHEDULED" ? "SCHEDULED" : saveStatus);

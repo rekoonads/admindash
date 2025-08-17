@@ -7,7 +7,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 export async function createArticle(formData: FormData) {
   try {
     const { userId } = await auth();
-    const actualUserId = userId || "default-admin";
+    if (!userId) {
+      throw new Error("Authentication required");
+    }
+    const actualUserId = userId;
     
     if (!userId) {
       console.log("No user ID from auth, using default:", actualUserId);
@@ -59,12 +62,23 @@ export async function createArticle(formData: FormData) {
     }
 
     // Validate category exists and get category data
-    const categoryExists = await prisma.category.findUnique({
+    let categoryExists = await prisma.category.findUnique({
       where: { slug: categoryId },
       select: { id: true, slug: true, name: true }
     });
+    
+    // If category doesn't exist, create it
     if (!categoryExists) {
-      throw new Error(`Category '${categoryId}' does not exist`);
+      console.log(`Creating new category: ${categoryId}`);
+      categoryExists = await prisma.category.create({
+        data: {
+          name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' '),
+          slug: categoryId,
+          description: `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' ')} content`,
+          is_active: true
+        },
+        select: { id: true, slug: true, name: true }
+      });
     }
     
     console.log('Found category:', categoryExists);
@@ -286,22 +300,28 @@ export async function getArticleBySlug(slug: string) {
 
 export async function updateArticleStatus(id: string, status: string) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
     const updateData: any = { status: status as any };
     
     if (status === "PUBLISHED") {
       updateData.published_at = new Date();
     }
 
-    await prisma.article.update({
+    const article = await prisma.article.update({
       where: { id },
       data: updateData,
     });
 
     revalidatePath("/admin/content");
     revalidatePath("/");
+    return article;
   } catch (error) {
     console.error("Error in updateArticleStatus:", error);
-    throw error;
+    throw new Error(`Failed to update article status: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -312,6 +332,11 @@ export const updatePostStatus = updateArticleStatus;
 
 export async function updatePost(id: string, formData: FormData) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      throw new Error("Authentication required");
+    }
+    
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
