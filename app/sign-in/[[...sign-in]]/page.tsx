@@ -34,7 +34,7 @@ export default function Page() {
 
         {/* Sign In Form */}
         <div className={`bg-white rounded-2xl shadow-xl border border-gray-200 ${isMobile ? 'p-4' : 'p-8'}`}>
-          <SignIn afterSignInUrl="/admin" afterSignUpUrl="/admin" />
+          <SignIn redirectUrl="/admin" />
         </div>
 
         {/* Footer */}
