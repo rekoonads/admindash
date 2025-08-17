@@ -155,10 +155,87 @@ export function ContentEditor({
       let articleType = "NEWS"; // default
       let finalCategory = category;
       
-      if (type.includes("Review") || type.includes("review")) {
-        articleType = "REVIEW";
-        finalCategory = "reviews";
-      } else if (type.includes("Guide") || type.includes("guide")) {
+      // Gaming Reviews
+      if (type.includes("Game Review") || type.includes("game-review")) {
+        articleType = "GAME_REVIEW";
+        finalCategory = "game-reviews";
+      }
+      // Movie Reviews  
+      else if (type.includes("Movie Review") || type.includes("movie-review")) {
+        articleType = "MOVIE_REVIEW";
+        finalCategory = "movie-reviews";
+      }
+      // TV Reviews
+      else if (type.includes("TV Review") || type.includes("tv-review")) {
+        articleType = "TV_REVIEW";
+        finalCategory = "tv-reviews";
+      }
+      // Tech Reviews
+      else if (type.includes("Tech Review") || type.includes("tech-review")) {
+        articleType = "TECH_REVIEW";
+        finalCategory = "tech-reviews";
+      }
+      // Comic Reviews
+      else if (type.includes("Comic Review") || type.includes("comic-review")) {
+        articleType = "COMIC_REVIEW";
+        finalCategory = "comic-reviews";
+      }
+      // Gaming Platforms
+      else if (type.includes("PlayStation") || type.includes("playstation")) {
+        articleType = "NEWS";
+        finalCategory = "playstation";
+      }
+      else if (type.includes("Xbox") || type.includes("xbox")) {
+        articleType = "NEWS";
+        finalCategory = "xbox";
+      }
+      else if (type.includes("Nintendo") || type.includes("nintendo")) {
+        articleType = "NEWS";
+        finalCategory = "nintendo";
+      }
+      else if (type.includes("PC Gaming") || type.includes("pc-gaming")) {
+        articleType = "NEWS";
+        finalCategory = "pc-gaming";
+      }
+      else if (type.includes("Mobile Gaming") || type.includes("mobile-gaming")) {
+        articleType = "NEWS";
+        finalCategory = "mobile-gaming";
+      }
+      // Content Types
+      else if (type.includes("Latest Updates") || type.includes("latest-updates")) {
+        articleType = "NEWS";
+        finalCategory = "latest-updates";
+      }
+      else if (type.includes("Interviews") || type.includes("interviews")) {
+        articleType = "INTERVIEW";
+        finalCategory = "interviews";
+      }
+      else if (type.includes("Spotlights") || type.includes("spotlights")) {
+        articleType = "SPOTLIGHT";
+        finalCategory = "spotlights";
+      }
+      else if (type.includes("Top Lists") || type.includes("top-lists")) {
+        articleType = "LIST";
+        finalCategory = "top-lists";
+      }
+      else if (type.includes("Opinions") || type.includes("opinions")) {
+        articleType = "OPINION";
+        finalCategory = "opinions";
+      }
+      else if (type.includes("Wiki") || type.includes("wiki")) {
+        articleType = "WIKI";
+        finalCategory = "wiki";
+      }
+      else if (type.includes("Cosplay") || type.includes("cosplay")) {
+        articleType = "COSPLAY";
+        finalCategory = "cosplay";
+      }
+      else if (type.includes("Science & Comics") || type.includes("science-comics")) {
+        articleType = "SCIENCE";
+        finalCategory = "science-comics";
+      }
+      // General Categories
+      else if (type.includes("Guide") || type.includes("guide")) {
         articleType = "GUIDE";
         finalCategory = "guides";
       } else if (type.includes("Video") || type.includes("video")) {
