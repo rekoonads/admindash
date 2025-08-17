@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+// import { Prisma } from '@prisma/client'
 
 // Generate slug from name
 function generateSlug(name: string): string {
@@ -36,7 +36,7 @@ async function ensureUniqueSlug(
 
 export function setupPrismaMiddleware(prisma: any) {
   // Category slug generation middleware
-  prisma.$use(async (params: Prisma.MiddlewareParams, next: any) => {
+  prisma.$use(async (params: any, next: any) => {
     // Handle Category create/update operations
     if (params.model === 'Category') {
       if (params.action === 'create' || params.action === 'update') {
@@ -72,7 +72,7 @@ export function setupPrismaMiddleware(prisma: any) {
   })
 
   // Article slug generation middleware
-  prisma.$use(async (params: Prisma.MiddlewareParams, next: any) => {
+  prisma.$use(async (params: any, next: any) => {
     if (params.model === 'Article') {
       if (params.action === 'create' || params.action === 'update') {
         const data = params.args.data
