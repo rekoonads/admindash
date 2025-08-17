@@ -6,6 +6,13 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import Highlight from "@tiptap/extension-highlight";
+import { Table } from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableHeader from "@tiptap/extension-table-header";
+import TableCell from "@tiptap/extension-table-cell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +43,7 @@ import {
   AlignJustify,
   LinkIcon,
   ImageIcon,
-  TableIcon,
+
   Palette,
   Highlighter,
   FileCode,
@@ -80,6 +87,17 @@ export function TiptapEditor({
         openOnClick: false,
       }),
       Image,
+      TextStyle,
+      Color,
+      Highlight.configure({
+        multicolor: true,
+      }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -144,6 +162,8 @@ export function TiptapEditor({
         .run();
     }
   }, [editor]);
+
+
 
   const toggleCodeView = useCallback(() => {
     if (showCodeView) {
@@ -473,6 +493,10 @@ export function TiptapEditor({
                     </div>
                   </PopoverContent>
                 </Popover>
+
+                <Button variant="ghost" size="sm" onClick={addTable}>
+                  <TableIcon className="h-4 w-4" />
+                </Button>
               </div>
 
               <Separator orientation="vertical" className="h-6" />
@@ -537,9 +561,7 @@ export function TiptapEditor({
                   </PopoverContent>
                 </Popover>
 
-                <Button variant="ghost" size="sm" onClick={addTable}>
-                  <TableIcon className="h-4 w-4" />
-                </Button>
+
               </div>
 
               <Separator orientation="vertical" className="h-6" />
