@@ -11,9 +11,9 @@ export default function Home() {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn) {
-        window.location.href = "/admin"
+        router.replace("/admin")
       } else {
-        router.push("/sign-in")
+        router.replace("/sign-in")
       }
     }
   }, [isSignedIn, isLoaded, router])
