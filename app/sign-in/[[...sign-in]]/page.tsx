@@ -26,7 +26,7 @@ export default function Page() {
           <SignIn 
             redirectUrl="/admin"
             afterSignInUrl="/admin"
-            signUpUrl={null}
+            signUpUrl=""
             routing="hash"
             appearance={{
               variables: {
