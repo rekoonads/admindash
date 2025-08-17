@@ -31,7 +31,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
   // Get related posts
   const allPosts = await getPublishedPosts();
   const relatedPosts = allPosts
-    .filter((p) => p.category === post.category && p.id !== post.id)
+    .filter((p) => p.category?.id === post.category?.id && p.id !== post.id)
     .slice(0, 3);
 
   return (
@@ -50,10 +50,10 @@ export default async function NewsArticlePage({ params }: PageProps) {
       </div>
 
       <article className="max-w-4xl mx-auto">
-        {post.featuredImage && (
+        {post.featured_image && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-8">
             <Image
-              src={post.featuredImage || "/placeholder.svg"}
+              src={post.featured_image || "/placeholder.svg"}
               alt={post.title}
               fill
               className="object-cover"
@@ -65,10 +65,10 @@ export default async function NewsArticlePage({ params }: PageProps) {
 
         <header className="space-y-4 mb-8">
           <div className="flex items-center gap-4">
-            <Badge variant="secondary">{post.category}</Badge>
+            <Badge variant="secondary">{post.category?.name || 'News'}</Badge>
             <div className="flex items-center text-sm text-muted-foreground">
               <Eye className="h-4 w-4 mr-1" />
-              {(post.views + 1).toLocaleString()} views
+              {(post.views_count + 1).toLocaleString()} views
             </div>
           </div>
 
@@ -83,11 +83,11 @@ export default async function NewsArticlePage({ params }: PageProps) {
           <div className="flex items-center gap-6 text-sm text-muted-foreground border-t pt-4">
             <div className="flex items-center">
               <User className="h-4 w-4 mr-2" />
-              {post.author}
+              {post.author_name}
             </div>
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2" />
-              {new Date(post.createdAt).toLocaleDateString("en-US", {
+              {new Date(post.created_at).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -115,10 +115,10 @@ export default async function NewsArticlePage({ params }: PageProps) {
                 key={relatedPost.id}
                 className="hover:shadow-lg transition-shadow overflow-hidden"
               >
-                {relatedPost.featuredImage && (
+                {relatedPost.featured_image && (
                   <div className="relative aspect-video w-full">
                     <Image
-                      src={relatedPost.featuredImage || "/placeholder.svg"}
+                      src={relatedPost.featured_image || "/placeholder.svg"}
                       alt={relatedPost.title}
                       fill
                       className="object-cover"
@@ -128,7 +128,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
                 )}
                 <CardHeader>
                   <Badge variant="outline" className="w-fit mb-2">
-                    {relatedPost.category}
+                    {relatedPost.category?.name || 'News'}
                   </Badge>
                   <h3 className="font-semibold line-clamp-2">
                     <Link
@@ -146,9 +146,9 @@ export default async function NewsArticlePage({ params }: PageProps) {
                     </p>
                   )}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{relatedPost.author}</span>
+                    <span>{relatedPost.author_name}</span>
                     <span>
-                      {new Date(relatedPost.createdAt).toLocaleDateString()}
+                      {new Date(relatedPost.created_at).toLocaleDateString()}
                     </span>
                   </div>
                 </CardContent>

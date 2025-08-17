@@ -12,14 +12,14 @@ export async function GET() {
       prisma.article.count(),
       prisma.article.count({ where: { status: 'PUBLISHED' } }),
       prisma.article.count({ where: { status: 'DRAFT' } }),
-      prisma.article.aggregate({ _sum: { views: true } })
+      prisma.article.aggregate({ _sum: { views_count: true } })
     ])
 
     const stats = {
       totalArticles,
       publishedArticles,
       draftArticles,
-      totalViews: totalViews._sum.views || 0
+      totalViews: totalViews._sum.views_count || 0
     }
 
     return NextResponse.json(stats)

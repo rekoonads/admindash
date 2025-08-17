@@ -19,18 +19,18 @@ export async function GET(request: NextRequest) {
 
     // Get total views
     const totalViews = await prisma.article.aggregate({
-      _sum: { views: true }
+      _sum: { views_count: true }
     })
 
     // Get top articles by views
     const topArticles = await prisma.article.findMany({
       where: { status: 'PUBLISHED' },
-      orderBy: { views: 'desc' },
+      orderBy: { views_count: 'desc' },
       take: 10,
       select: {
         id: true,
         title: true,
-        views: true,
+        views_count: true,
         category_id: true,
         category: {
           select: {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           totalArticles,
           publishedArticles,
           draftArticles,
-          totalViews: totalViews._sum.views || 0
+          totalViews: totalViews._sum.views_count || 0
         },
         topArticles,
         articlesByCategory

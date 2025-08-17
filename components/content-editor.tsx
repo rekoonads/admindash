@@ -120,22 +120,21 @@ export function ContentEditor({
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
       setCategory(editingPost.category?.slug || editingPost.category_id || "game-guides");
-      const postCategories = editingPost.categories?.map(c => c.category) || [];
-      if (!postCategories.includes(editingPost.category)) {
-        postCategories.push(editingPost.category?.slug || editingPost.category_id || "game-guides");
-      }
-      setSelectedCategories(postCategories);
+      // Handle category data properly
+      const currentCategory = editingPost.category?.slug || editingPost.category_id || "game-guides";
+      setSelectedCategories([currentCategory]);
       setStatus(editingPost.status as any);
       setTags(""); // Tags not in current schema
       setFeaturedImage(editingPost.featured_image || "");
       setVideoUrl(""); // Not in schema
       setThumbnail(""); // Not in schema
-      setMetaTitle(editingPost.meta_title || "");
-      setMetaDescription(editingPost.meta_description || "");
-      setMetaKeywords(editingPost.meta_keywords || "");
-      setIsFeatured(editingPost.is_featured || false);
-      setPurchaseLink(editingPost.purchase_link || "");
-      setPrice(editingPost.price || "");
+      // Handle fields that may not exist in Post type
+      setMetaTitle((editingPost as any).meta_title || "");
+      setMetaDescription((editingPost as any).meta_description || "");
+      setMetaKeywords((editingPost as any).meta_keywords || "");
+      setIsFeatured((editingPost as any).is_featured || false);
+      setPurchaseLink((editingPost as any).purchase_link || "");
+      setPrice((editingPost as any).price || "");
     }
   }, [editingPost]);
 

@@ -14,28 +14,37 @@ export async function GET(request: NextRequest) {
 
     const users = await prisma.user.findMany({
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       select: {
         id: true,
-        name: true,
+        first_name: true,
+        last_name: true,
+        display_name: true,
         email: true,
         role: true,
-        createdAt: true,
+        created_at: true,
         _count: {
           select: {
             articles: true,
             comments: true,
-            likes: true
+            reactions: true
           }
         }
       }
     })
 
+    // Transform data to match frontend expectations
+    const transformedUsers = users.map(user => ({
+      ...user,
+      name: user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown User',
+      createdAt: user.created_at
+    }))
+
     const totalUsers = await prisma.user.count()
 
     return NextResponse.json({
       success: true,
-      users,
+      users: transformedUsers,
       total: totalUsers
     })
   } catch (error) {

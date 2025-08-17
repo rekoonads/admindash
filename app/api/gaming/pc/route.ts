@@ -6,7 +6,7 @@ export async function GET() {
     const pcContent = await prisma.article.findMany({
       where: {
         status: "PUBLISHED",
-        platform: { has: "PC" }
+        platforms: { has: "PC" }
       },
       orderBy: { published_at: "desc" },
       include: {

@@ -7,8 +7,8 @@ export async function GET() {
       where: {
         status: "PUBLISHED",
         OR: [
-          { platform: { has: "PS5" } },
-          { platform: { has: "PS4" } }
+          { platforms: { has: "PS5" } },
+          { platforms: { has: "PS4" } }
         ]
       },
       orderBy: { published_at: "desc" },

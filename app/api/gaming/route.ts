@@ -7,9 +7,9 @@ export async function GET() {
       where: {
         status: "PUBLISHED",
         OR: [
-          { platform: { hasSome: ["PC", "PS5", "PS4", "XBOX_SERIES", "XBOX_ONE", "NINTENDO_SWITCH"] } },
+          { platforms: { hasSome: ["PC", "PS5", "PS4", "XBOX_SERIES", "XBOX_ONE", "NINTENDO_SWITCH"] } },
           { type: "GAME_REVIEW" },
-          { genre: { hasSome: ["ACTION", "ADVENTURE", "RPG", "STRATEGY", "SIMULATION", "SPORTS", "RACING", "FIGHTING", "PUZZLE", "HORROR", "SHOOTER", "PLATFORMER", "MMO", "INDIE", "CASUAL"] } }
+          { genres: { hasSome: ["ACTION", "ADVENTURE", "RPG", "STRATEGY", "SIMULATION", "SPORTS", "RACING", "FIGHTING", "PUZZLE", "HORROR", "SHOOTER", "PLATFORMER", "MMO", "INDIE", "CASUAL"] } }
         ]
       },
       orderBy: { published_at: "desc" },

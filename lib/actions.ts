@@ -180,7 +180,7 @@ export async function getArticles(filters?: {
       where.OR = [
         { title: { contains: filters.search, mode: 'insensitive' } },
         { content: { contains: filters.search, mode: 'insensitive' } },
-        { author: { contains: filters.search, mode: 'insensitive' } }
+        { author_name: { contains: filters.search, mode: 'insensitive' } }
       ];
     }
 
@@ -193,7 +193,14 @@ export async function getArticles(filters?: {
       take: filters?.limit || undefined,
     });
 
-    return articles;
+    // Transform articles to match Post type expectations
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      author: article.author_name || 'Unknown Author',
+      views: article.views_count
+    }));
+
+    return transformedArticles;
   } catch (error) {
     console.error("Error in getArticles:", error);
     return [];
@@ -222,7 +229,14 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
       take: limit || 20,
     });
 
-    return articles;
+    // Transform articles to match Post type expectations
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      author: article.author_name || 'Unknown Author',
+      views: article.views_count
+    }));
+
+    return transformedArticles;
   } catch (error) {
     console.error("Error in getPublishedArticles:", error);
     return [];
@@ -274,7 +288,7 @@ export async function updateArticleStatus(id: string, status: string) {
     const updateData: any = { status: status as any };
     
     if (status === "PUBLISHED") {
-      updateData.publishedAt = new Date();
+      updateData.published_at = new Date();
     }
 
     await prisma.article.update({

@@ -6,7 +6,7 @@ export async function GET() {
     const nintendoContent = await prisma.article.findMany({
       where: {
         status: "PUBLISHED",
-        platform: { has: "NINTENDO_SWITCH" }
+        platforms: { has: "NINTENDO_SWITCH" }
       },
       orderBy: { published_at: "desc" },
       include: {
