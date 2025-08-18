@@ -5,7 +5,7 @@ const isProtectedRoute = createRouteMatcher(['/admin(.*)']);
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect({
-      unauthenticatedUrl: '/sign-in'
+      unauthenticatedUrl: `${req.nextUrl.origin}/sign-in`
     });
   }
 });
