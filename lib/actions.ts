@@ -6,30 +6,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function createArticle(formData: FormData) {
   try {
-    let userId: string | null = null;
-    
-    // Try auth() first
-    try {
-      const authResult = await auth();
-      userId = authResult?.userId || null;
-    } catch (authError) {
-      console.error("Auth error, trying currentUser:", authError);
-    }
-    
-    // Fallback to currentUser if auth() fails
-    if (!userId) {
-      try {
-        const user = await currentUser();
-        userId = user?.id || null;
-      } catch (userError) {
-        console.error("CurrentUser error:", userError);
-      }
-    }
+    const { userId } = await auth();
     
     if (!userId) {
-      console.warn("No userId found, using fallback for production");
-      // Temporary fallback for production deployment
-      userId = "temp-admin-user";
+      throw new Error("Authentication required");
     }
     const actualUserId = userId;
     
