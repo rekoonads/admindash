@@ -18,7 +18,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push("/sign-in")
+      router.replace("/sign-in");
     }
   }, [isSignedIn, isLoaded, router])
 
@@ -34,7 +34,13 @@ export default function AdminLayout({
   }
 
   if (!isSignedIn) {
-    return null
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to sign in...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -13,9 +13,9 @@ export default function Page() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      window.location.href = '/admin'
+      router.replace('/admin')
     }
-  }, [isSignedIn, isLoaded])
+  }, [isSignedIn, isLoaded, router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-3 sm:p-4 md:p-6">
@@ -35,7 +35,7 @@ export default function Page() {
         {/* Sign In Form */}
         <div className={`bg-white rounded-2xl shadow-xl border border-gray-200 ${isMobile ? 'p-4' : 'p-8'}`}>
           <SignIn  
-            redirectUrl="/admin"  
+            fallbackRedirectUrl="/admin"  
             appearance={{  
               elements: { 
                 footerAction: { display: 'none' },

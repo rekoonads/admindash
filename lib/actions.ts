@@ -11,11 +11,6 @@ export async function createArticle(formData: FormData) {
     if (!userId) {
       throw new Error("Authentication required");
     }
-    const actualUserId = userId;
-    
-    if (!userId) {
-      console.log("No user ID from auth, using default:", actualUserId);
-    }
 
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
@@ -26,9 +21,7 @@ export async function createArticle(formData: FormData) {
       throw new Error("Category is required - no categoryId provided");
     }
     
-    console.log("Raw categoryId from form:", formData.get("categoryId"));
-    console.log("Using categoryId:", categoryId);
-    console.log("All form data:", Array.from(formData.entries()));
+
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
     // Ensure primary category is always included
@@ -55,7 +48,7 @@ export async function createArticle(formData: FormData) {
     const purchaseLink = (formData.get("purchaseLink") as string) || "";
     const price = (formData.get("price") as string) || "";
 
-    console.log("Creating article:", { title, categoryId, type, status, category: categoryId, selectedCategories });
+
 
     if (!title?.trim() || !content?.trim()) {
       console.error("Missing required fields:", { title: !!title, content: !!content });
@@ -99,7 +92,7 @@ export async function createArticle(formData: FormData) {
       }
     }
     
-    console.log('Found category:', categoryExists);
+
 
     // Generate unique article slug
     const { generateSlug, ensureUniqueArticleSlug } = await import('@/lib/slug-utils')
@@ -112,14 +105,13 @@ export async function createArticle(formData: FormData) {
     
     try {
       user = await prisma.user.findUnique({
-        where: { clerk_id: actualUserId }
+        where: { clerk_id: userId }
       });
 
       if (!user) {
-        console.log("Creating new user for:", actualUserId);
         user = await prisma.user.create({
           data: {
-            clerk_id: actualUserId,
+            clerk_id: userId,
             email: clerkUser?.emailAddresses[0]?.emailAddress || "user@example.com",
             first_name: clerkUser?.firstName || "User",
             last_name: clerkUser?.lastName || "",
@@ -151,7 +143,7 @@ export async function createArticle(formData: FormData) {
       user.username || 
       'User';
     
-    console.log('Author name being saved:', authorName, 'Clerk user:', clerkUser?.firstName, clerkUser?.lastName);
+
 
     const article = await prisma.article.create({
       data: {
@@ -164,7 +156,7 @@ export async function createArticle(formData: FormData) {
         type: type as any,
         status: status as any,
         category_id: categoryExists.slug,
-        author_id: user?.id || actualUserId,
+        author_id: user?.id || userId,
         author_name: authorName,
         platforms: platform ? [platform as any] : [],
         genres: genre ? [genre as any] : [],
@@ -183,7 +175,7 @@ export async function createArticle(formData: FormData) {
       }
     });
 
-    console.log("Article created successfully:", article.id);
+
 
     revalidatePath("/admin/content");
     revalidatePath("/");
