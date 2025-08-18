@@ -6,9 +6,28 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function createArticle(formData: FormData) {
   try {
-    const { userId } = auth();
+    let userId: string | null = null;
+    
+    // Try auth() first
+    try {
+      const authResult = await auth();
+      userId = authResult?.userId || null;
+    } catch (authError) {
+      console.error("Auth error, trying currentUser:", authError);
+    }
+    
+    // Fallback to currentUser if auth() fails
     if (!userId) {
-      throw new Error("Authentication required");
+      try {
+        const user = await currentUser();
+        userId = user?.id || null;
+      } catch (userError) {
+        console.error("CurrentUser error:", userError);
+      }
+    }
+    
+    if (!userId) {
+      throw new Error("Authentication required - please sign in");
     }
     const actualUserId = userId;
     
@@ -317,7 +336,7 @@ export async function getArticleBySlug(slug: string) {
 
 export async function updateArticleStatus(id: string, status: string) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       throw new Error("Unauthorized");
     }
@@ -349,7 +368,7 @@ export const updatePostStatus = updateArticleStatus;
 
 export async function updatePost(id: string, formData: FormData) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       throw new Error("Authentication required");
     }
