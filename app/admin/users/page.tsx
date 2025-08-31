@@ -1,197 +1,136 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Plus, Edit, Trash2, Shield, Filter } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+import { Users, Search, UserPlus, Shield, Mail, Calendar } from "lucide-react"
+import { useState, useEffect } from "react"
 
 export default function UsersPage() {
-  const users = [
+  const { user } = useUser()
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const mockUsers = [
     {
-      id: "user-1",
-      name: "John Admin",
-      email: "john.admin@example.com",
-      role: "Administrator",
-      status: "Active",
-      joinDate: "2023-01-01",
+      id: "1",
+      firstName: "John",
+      lastName: "Doe",
+      emailAddresses: [{ emailAddress: "john@example.com" }],
+      imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
+      createdAt: new Date().toISOString(),
+      publicMetadata: { role: "admin" }
     },
     {
-      id: "user-2",
-      name: "Jane Editor",
-      email: "jane.editor@example.com",
-      role: "Editor",
-      status: "Active",
-      joinDate: "2023-02-15",
-    },
-    {
-      id: "user-3",
-      name: "Mike Moderator",
-      email: "mike.mod@example.com",
-      role: "Moderator",
-      status: "Active",
-      joinDate: "2023-03-20",
-    },
-    {
-      id: "user-4",
-      name: "Sarah Contributor",
-      email: "sarah.contributor@example.com",
-      role: "Contributor",
-      status: "Inactive",
-      joinDate: "2023-04-10",
-    },
+      id: "2",
+      firstName: "Jane",
+      lastName: "Smith",
+      emailAddresses: [{ emailAddress: "jane@example.com" }],
+      imageUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face",
+      createdAt: new Date().toISOString(),
+      publicMetadata: { role: "editor" }
+    }
   ]
 
+  useEffect(() => {
+    setUsers(mockUsers)
+  }, [])
+
+  const filteredUsers = users.filter(u => 
+    u.emailAddresses?.[0]?.emailAddress?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const getRoleBadge = (role) => {
+    const variants = {
+      admin: "destructive",
+      editor: "default", 
+      author: "secondary",
+      user: "outline"
+    }
+    return <Badge variant={variants[role] || "outline"}>{role || "user"}</Badge>
+  }
+
   return (
-    <div className="flex flex-1 flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage user accounts, roles, and permissions</p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add New User
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
-              <DialogDescription>Fill in the details to create a new user account.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="user-name">Full Name</Label>
-                <Input id="user-name" placeholder="John Doe" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-email">Email</Label>
-                <Input id="user-email" type="email" placeholder="john.doe@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-role">Role</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="administrator">Administrator</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="moderator">Moderator</SelectItem>
-                    <SelectItem value="contributor">Contributor</SelectItem>
-                    <SelectItem value="subscriber">Subscriber</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-password">Password</Label>
-                <Input id="user-password" type="password" placeholder="Set initial password" />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button>Create User</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <p className="text-muted-foreground">Manage users and permissions with Clerk</p>
       </div>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <div className="flex items-center gap-4 mt-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search users..." className="pl-8" />
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Users ({filteredUsers.length})
+              </div>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite User
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="administrator">Administrator</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
-                <SelectItem value="contributor">Contributor</SelectItem>
-                <SelectItem value="subscriber">Subscriber</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              Apply Filters
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <Checkbox id={`select-${user.id}`} />
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Avatar" />
-                    <AvatarFallback>
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">{user.name}</h3>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Shield className="h-3 w-3" />
-                        {user.role}
-                      </span>
-                      <span>Joined: {user.joinDate}</span>
+
+            {loading ? (
+              <div className="text-center py-8">Loading users...</div>
+            ) : (
+              <div className="space-y-4">
+                {filteredUsers.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={u.imageUrl}
+                        alt={u.firstName || "User"}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <div className="font-medium">
+                          {u.firstName} {u.lastName}
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {u.emailAddresses?.[0]?.emailAddress}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(u.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getRoleBadge(u.publicMetadata?.role)}
+                      <Button variant="outline" size="sm">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Manage
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={user.status === "Active" ? "default" : "secondary"}>{user.status}</Badge>
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button variant="outline">Bulk Change Role</Button>
-            <Button variant="destructive">Bulk Delete</Button>
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

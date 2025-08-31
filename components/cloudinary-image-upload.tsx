@@ -96,6 +96,7 @@ export function CloudinaryImageUpload({
                 </Button>
                 <input
                   id="file-upload"
+                  name="file-upload"
                   type="file"
                   className="sr-only"
                   accept="image/*"
@@ -111,6 +112,8 @@ export function CloudinaryImageUpload({
           
           <div className="flex gap-2">
             <Input
+              id="imageUrl"
+              name="imageUrl"
               placeholder="Or paste image URL"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}

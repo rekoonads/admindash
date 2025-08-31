@@ -9,7 +9,7 @@ export default function MobilePage() {
       title="Mobile Gaming Content"
       description="Manage mobile games, iOS, Android gaming coverage"
       contentType="Mobile Gaming Article"
-      category="mobile"
+      category="mobile-gaming"
       icon={Smartphone}
     />
   )

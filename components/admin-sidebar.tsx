@@ -30,6 +30,13 @@ import {
   Cookie,
   Briefcase,
   Rss,
+  Search,
+  Settings,
+  Users,
+  BarChart3,
+  FileEdit,
+  Image,
+  Target,
 } from "lucide-react"
 
 import {
@@ -51,6 +58,134 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 const data = {
   navMain: [
+    {
+      title: "Dashboard",
+      url: "/admin",
+      icon: Home,
+    },
+    {
+      title: "Content",
+      icon: FileEdit,
+      items: [
+        {
+          title: "Latest Updates",
+          url: "/admin/content/latest-updates",
+        },
+        {
+          title: "Reviews",
+          url: "/admin/content/reviews",
+        },
+        {
+          title: "Interviews",
+          url: "/admin/content/interviews",
+        },
+        {
+          title: "Spotlights",
+          url: "/admin/content/spotlights",
+        },
+        {
+          title: "Top Lists",
+          url: "/admin/content/top-lists",
+        },
+        {
+          title: "Opinions",
+          url: "/admin/content/opinions",
+        },
+        {
+          title: "Guides",
+          url: "/admin/content/guides",
+        },
+        {
+          title: "Videos",
+          url: "/admin/content/videos",
+        },
+        {
+          title: "Gaming",
+          url: "/admin/content/gaming",
+        },
+        {
+          title: "Tech",
+          url: "/admin/content/tech",
+        },
+        {
+          title: "Anime & Manga",
+          url: "/admin/content/anime",
+        },
+        {
+          title: "Science & Comics",
+          url: "/admin/content/science",
+        },
+      ],
+    },
+    {
+      title: "SEO",
+      icon: Search,
+      items: [
+        {
+          title: "Overview",
+          url: "/admin/seo",
+        },
+        {
+          title: "Meta Descriptions",
+          url: "/admin/seo/meta",
+        },
+        {
+          title: "Issues",
+          url: "/admin/seo/issues",
+        },
+        {
+          title: "Suggestions",
+          url: "/admin/seo/suggestions",
+        },
+      ],
+    },
+    {
+      title: "Media",
+      url: "/admin/media",
+      icon: Image,
+    },
+    {
+      title: "Users",
+      url: "/admin/users",
+      icon: Users,
+    },
+    {
+      title: "Analytics",
+      url: "/admin/analytics",
+      icon: BarChart3,
+    },
+    {
+      title: "Marketing",
+      url: "/admin/marketing",
+      icon: Target,
+    },
+    {
+      title: "Settings",
+      url: "/admin/settings",
+      icon: Settings,
+    },
+    {
+      title: "Pages",
+      icon: FileText,
+      items: [
+        {
+          title: "About",
+          url: "/admin/pages/about",
+        },
+        {
+          title: "Contact",
+          url: "/admin/pages/contact",
+        },
+        {
+          title: "Privacy",
+          url: "/admin/pages/privacy",
+        },
+        {
+          title: "Terms",
+          url: "/admin/pages/user-agreement",
+        },
+      ],
+    },
     {
       title: "Home",
       url: "/",
@@ -265,7 +400,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => (

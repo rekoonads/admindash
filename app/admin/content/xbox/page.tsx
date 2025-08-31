@@ -8,7 +8,7 @@ export default function XboxPage() {
     <ContentManagementPage
       title="Xbox Content"
       description="Manage Xbox Series X/S, Game Pass, and platform coverage"
-      contentType="Xbox Article"
+      contentType="Xbox"
       category="xbox"
       icon={Gamepad2}
     />

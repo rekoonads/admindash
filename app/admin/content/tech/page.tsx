@@ -8,7 +8,7 @@ export default function TechPage() {
     <ContentManagementPage
       title="Tech Content"
       description="Manage technology news, reviews, and features"
-      contentType="Tech Article"
+      contentType="Tech"
       category="tech"
       icon={Monitor}
     />

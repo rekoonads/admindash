@@ -8,13 +8,14 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserButton, useUser } from "@clerk/nextjs"
 import { useIsMobile } from "@/components/ui/use-mobile"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 
 export function DashboardHeader() {
   const isMobile = useIsMobile()
   const { user } = useUser()
   const [searchQuery, setSearchQuery] = useState("")
+  const [unreadCount, setUnreadCount] = useState(0)
   
   const handleSearch = async (query: string) => {
     if (!query.trim()) return
@@ -33,6 +34,24 @@ export function DashboardHeader() {
       handleSearch(searchQuery)
     }
   }
+  
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const response = await fetch('/api/notifications?unread_only=true&limit=1')
+        if (response.ok) {
+          const data = await response.json()
+          setUnreadCount(data.unread_count || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching notification count:', error)
+      }
+    }
+    
+    if (user) {
+      fetchNotificationCount()
+    }
+  }, [user])
 
   return (
     <header className={`flex ${isMobile ? 'h-14' : 'h-16'} shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b ${isMobile ? 'px-2' : 'px-4'}`}>
@@ -67,7 +86,11 @@ export function DashboardHeader() {
         )}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+              {unreadCount}
+            </Badge>
+          )}
         </Button>
         
         {!isMobile && user && (

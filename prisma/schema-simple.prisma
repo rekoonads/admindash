@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  clerk_id   String   @unique
+  email      String   @unique
+  username   String?  @unique
+  first_name String?
+  last_name  String?
+  role       String   @default("USER")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  
+  articles   Article[]
+  
+  @@map("users")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  excerpt     String?
+  slug        String   @unique
+  author_id   String
+  category_id String?
+  status      String   @default("DRAFT")
+  type        String   @default("NEWS")
+  
+  meta_title       String?
+  meta_description String?
+  featured_image   String?
+  
+  views_count    Int @default(0)
+  likes_count    Int @default(0)
+  shares_count   Int @default(0)
+  comments_count Int @default(0)
+  
+  is_featured      Boolean @default(false)
+  show_on_homepage Boolean @default(false)
+  
+  published_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  
+  author   User      @relation(fields: [author_id], references: [id])
+  category Category? @relation(fields: [category_id], references: [id])
+  
+  @@index([author_id])
+  @@index([category_id])
+  @@index([slug])
+  @@index([status])
+  @@map("articles")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  
+  articles Article[]
+  
+  @@map("categories")
+}
+
+model Banner {
+  id         String   @id @default(cuid())
+  title      String?
+  content    String?
+  image_url  String?
+  link_url   String?
+  position   String
+  page       String   @default("home")
+  is_active  Boolean  @default(true)
+  start_date DateTime?
+  end_date   DateTime?
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("banners")
+}

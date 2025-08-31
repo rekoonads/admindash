@@ -7,10 +7,11 @@ export default function OpinionsPage() {
   return (
     <ContentManagementPage
       title="Opinions"
-      description="Manage editorial opinions and commentary pieces"
+      description="Manage editorial opinions with debate-style layout and engagement tracking"
       contentType="Opinion"
       category="opinions"
       icon={MessageSquare}
+
     />
   )
 }

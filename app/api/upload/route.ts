@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { v2 as cloudinary } from 'cloudinary'
-
-export const dynamic = 'force-dynamic'
-
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+import { cloudinary } from '@/lib/cloudinary'
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if Cloudinary is configured
-    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.error('Cloudinary not configured')
-      return NextResponse.json({ error: 'Upload service not configured' }, { status: 500 })
-    }
+    
 
     const formData = await request.formData()
     const file = formData.get('file') as File

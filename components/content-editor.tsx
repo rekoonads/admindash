@@ -29,6 +29,9 @@ import {
   CalendarIcon,
   Clock,
   ImageIcon,
+  Search,
+  Sparkles,
+  Settings,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -56,7 +59,7 @@ export function ContentEditor({
   initialTitle = "",
   initialContent = "",
   initialExcerpt = "",
-  initialCategory = "game-guides",
+  initialCategory = "reviews",
   initialStatus = "DRAFT",
   editingPost,
   onSave,
@@ -65,8 +68,62 @@ export function ContentEditor({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
-  const [category, setCategory] = useState(initialCategory || "game-guides");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  
+  const getCategoryFromType = (contentType: string) => {
+    console.log('🔍 Mapping type to category:', contentType);
+    console.log('🔍 Content type details:', { type: contentType, length: contentType.length, chars: contentType.split('') });
+    // Reviews (specific first) - handle both singular and plural forms
+    if (contentType === 'Game Reviews' || contentType === 'Game Review') return 'game-reviews';
+    if (contentType === 'Movie Reviews' || contentType === 'Movie Review') return 'movie-reviews';
+    if (contentType === 'TV Reviews' || contentType === 'TV Review') return 'tv-reviews';
+    if (contentType === 'Tech Reviews' || contentType === 'Tech Review') return 'tech-reviews';
+    if (contentType === 'Comic Reviews' || contentType === 'Comic Review') return 'comic-reviews';
+    if (contentType === 'All Reviews' || contentType === 'Reviews') return 'reviews';
+    if (contentType.includes('Review')) return 'reviews';
+    // Gaming (specific first)
+    if (contentType.includes('Game Guide')) return 'guides';
+    if (contentType.includes('PC Gaming')) return 'pc-gaming';
+    if (contentType.includes('Mobile Gaming')) return 'mobile-gaming';
+    if (contentType.includes('Nintendo')) return 'nintendo';
+    if (contentType.includes('Xbox')) return 'xbox';
+    if (contentType.includes('PlayStation')) return 'playstation';
+    // Gaming
+    if (contentType === 'Mobile Gaming Article') return 'mobile-gaming';
+    // Entertainment  
+    if (contentType === 'Video') return 'videos';
+    if (contentType.includes('Anime')) return 'anime';
+    if (contentType.includes('Cosplay')) return 'cosplay';
+    if (contentType.includes('Entertainment')) return 'entertainment';
+    // Editorial
+    if (contentType.includes('Interview')) return 'interviews';
+    if (contentType.includes('Spotlight')) return 'spotlights';
+    if (contentType === 'Top List') return 'top-lists';
+    if (contentType.includes('Opinion')) return 'opinions';
+    if (contentType.includes('Editorial')) return 'editorial';
+    // Guides & Wiki
+    if (contentType.includes('Guides & Wiki')) return 'guides-wiki';
+    if (contentType === 'Guide') return 'guides';
+    if (contentType.includes('Wiki')) return 'wiki';
+    // Tech & Science
+    if (contentType.includes('Tech & Science')) return 'tech-science';
+    if (contentType.includes('Science & Comics')) return 'science-comics';
+    if (contentType.includes('Science')) return 'science-comics';
+    if (contentType === 'Tech') return 'tech';
+    // News and Latest Updates
+    if (contentType.includes('Latest Updates')) return 'latest-updates';
+    if (contentType.includes('News')) return 'latest-updates';
+    console.log('⚠️ No match found, defaulting to latest-updates for:', contentType);
+    console.log('🔍 Available checks that failed:');
+    console.log('- Game Review:', contentType.includes('Game Review'));
+    console.log('- Movie Review:', contentType.includes('Movie Review'));
+    console.log('- All Reviews:', contentType.includes('All Reviews'));
+    console.log('- Review:', contentType.includes('Review'));
+    return 'latest-updates';
+  };
+  
+  const [category, setCategory] = useState(initialCategory);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([initialCategory]);
   const [status, setStatus] = useState<
     "DRAFT" | "PUBLISHED" | "HIDDEN" | "SCHEDULED"
   >(initialStatus as any);
@@ -76,6 +133,11 @@ export function ContentEditor({
   const [thumbnail, setThumbnail] = useState("");
   const [author, setAuthor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [titleLoading, setTitleLoading] = useState(false);
+  const [descLoading, setDescLoading] = useState(false);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [seoLoading, setSeoLoading] = useState(false);
+  const [tagsLoading, setTagsLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [scheduleTime, setScheduleTime] = useState("09:00");
@@ -86,6 +148,7 @@ export function ContentEditor({
   const [purchaseLink, setPurchaseLink] = useState("");
   const [price, setPrice] = useState("");
   const [availableCategories, setAvailableCategories] = useState<Array<{slug: string, name: string}>>([]);
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
 
   const { user } = useUser();
   
@@ -109,19 +172,18 @@ export function ContentEditor({
   
   // Sync primary category with selected categories
   useEffect(() => {
-    if (category && !selectedCategories.includes(category)) {
-      setSelectedCategories([...selectedCategories, category]);
-    }
-  }, [category]);
+    setCategory(initialCategory);
+    setSelectedCategories([initialCategory]);
+  }, [initialCategory]);
   
   useEffect(() => {
     if (editingPost) {
       setTitle(editingPost.title);
       setContent(editingPost.content);
       setExcerpt(editingPost.excerpt || "");
-      setCategory(editingPost.category?.slug || editingPost.category_id || "game-guides");
+      setCategory(editingPost.category?.slug || editingPost.category_id || "news");
       // Handle category data properly
-      const currentCategory = editingPost.category?.slug || editingPost.category_id || "game-guides";
+      const currentCategory = editingPost.category?.slug || editingPost.category_id || "news";
       setSelectedCategories([currentCategory]);
       setStatus(editingPost.status as any);
       setTags(""); // Tags not in current schema
@@ -144,6 +206,8 @@ export function ContentEditor({
       return;
     }
 
+
+
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -151,119 +215,23 @@ export function ContentEditor({
       formData.append("content", content);
       formData.append("excerpt", excerpt.trim());
       
-      // Map content type to valid Prisma enum and ensure category matches
-      let articleType = "NEWS"; // default
-      let finalCategory = category;
-      
-      // Gaming Reviews
-      if (type.includes("Game Review") || type.includes("game-review")) {
+      // Map content type to article type
+      let articleType = "NEWS";
+      if (type.includes("Review")) {
         articleType = "GAME_REVIEW";
-        finalCategory = "game-reviews";
-      }
-      // Movie Reviews  
-      else if (type.includes("Movie Review") || type.includes("movie-review")) {
-        articleType = "MOVIE_REVIEW";
-        finalCategory = "movie-reviews";
-      }
-      // TV Reviews
-      else if (type.includes("TV Review") || type.includes("tv-review")) {
-        articleType = "TV_REVIEW";
-        finalCategory = "tv-reviews";
-      }
-      // Tech Reviews
-      else if (type.includes("Tech Review") || type.includes("tech-review")) {
-        articleType = "TECH_REVIEW";
-        finalCategory = "tech-reviews";
-      }
-      // Comic Reviews
-      else if (type.includes("Comic Review") || type.includes("comic-review")) {
-        articleType = "COMIC_REVIEW";
-        finalCategory = "comic-reviews";
-      }
-      // Gaming Platforms
-      else if (type.includes("PlayStation") || type.includes("playstation")) {
-        articleType = "NEWS";
-        finalCategory = "playstation";
-      }
-      else if (type.includes("Xbox") || type.includes("xbox")) {
-        articleType = "NEWS";
-        finalCategory = "xbox";
-      }
-      else if (type.includes("Nintendo") || type.includes("nintendo")) {
-        articleType = "NEWS";
-        finalCategory = "nintendo";
-      }
-      else if (type.includes("PC Gaming") || type.includes("pc-gaming")) {
-        articleType = "NEWS";
-        finalCategory = "pc-gaming";
-      }
-      else if (type.includes("Mobile Gaming") || type.includes("mobile-gaming")) {
-        articleType = "NEWS";
-        finalCategory = "mobile-gaming";
-      }
-      // Content Types
-      else if (type.includes("Latest Updates") || type.includes("latest-updates")) {
-        articleType = "NEWS";
-        finalCategory = "latest-updates";
-      }
-      else if (type.includes("Interviews") || type.includes("interviews")) {
-        articleType = "INTERVIEW";
-        finalCategory = "interviews";
-      }
-      else if (type.includes("Spotlights") || type.includes("spotlights")) {
-        articleType = "SPOTLIGHT";
-        finalCategory = "spotlights";
-      }
-      else if (type.includes("Top Lists") || type.includes("top-lists")) {
-        articleType = "LIST";
-        finalCategory = "top-lists";
-      }
-      else if (type.includes("Opinions") || type.includes("opinions")) {
-        articleType = "OPINION";
-        finalCategory = "opinions";
-      }
-      else if (type.includes("Wiki") || type.includes("wiki")) {
-        articleType = "WIKI";
-        finalCategory = "wiki";
-      }
-      else if (type.includes("Cosplay") || type.includes("cosplay")) {
-        articleType = "COSPLAY";
-        finalCategory = "cosplay";
-      }
-      else if (type.includes("Science & Comics") || type.includes("science-comics")) {
-        articleType = "SCIENCE";
-        finalCategory = "science-comics";
-      }
-      // General Categories
-      else if (type.includes("Guide") || type.includes("guide")) {
+      } else if (type.includes("Guide")) {
         articleType = "GUIDE";
-        finalCategory = "guides";
-      } else if (type.includes("Video") || type.includes("video")) {
+      } else if (type.includes("Video")) {
         articleType = "VIDEO";
-        finalCategory = "videos";
-      } else if (type.includes("Anime") || type.includes("anime")) {
-        articleType = "ANIME";
-        finalCategory = "anime";
-      } else if (type.includes("Comics") || type.includes("comics")) {
-        articleType = "COMICS";
-        finalCategory = "comics";
-      } else if (type.includes("Tech") || type.includes("tech")) {
-        articleType = "TECH";
-        finalCategory = "tech";
-      } else if (type.includes("Science") || type.includes("science")) {
-        articleType = "SCIENCE";
-        finalCategory = "science";
-      } else if (type.includes("Esports") || type.includes("esports")) {
-        articleType = "ESPORTS";
-        finalCategory = "esports";
-      } else if (type.includes("News") || type.includes("news")) {
-        articleType = "NEWS";
-        finalCategory = "news";
+      } else if (type.includes("Interview")) {
+        articleType = "INTERVIEW";
       }
       
-      // Author is handled server-side from Clerk user data
-      formData.append("categoryId", finalCategory);
-      console.log("Sending categoryId to server:", finalCategory);
+      console.log('🎯 Using category:', initialCategory);
+      console.log('🎯 Category state:', category);
+      console.log('🎯 Selected categories:', selectedCategories);
+      formData.append("categoryId", initialCategory);
+      console.log("📤 Sending to server:", initialCategory);
       formData.append("categories", JSON.stringify(selectedCategories));
       console.log("Selected categories:", selectedCategories);
       formData.append("type", articleType);
@@ -401,7 +369,7 @@ export function ContentEditor({
   };
 
   return (
-    <div className="space-y-6" onSubmit={handleFormSubmit}>
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onSave}>
@@ -425,15 +393,18 @@ export function ContentEditor({
               // Save as draft first, then preview
               try {
                 const article = await handleSave("DRAFT");
-                // Use the actual slug from the saved article
-                const slug = article?.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").substring(0, 50);
-                // Get the category slug from availableCategories
-                const categorySlug = availableCategories.find(cat => cat.slug === category)?.slug || category;
-                const url = `https://koodos.in/${categorySlug}/${slug}`;
-                console.log('Preview URL:', url, 'Category:', categorySlug);
-                window.open(url, '_blank');
+                // Use the URL returned from the backend
+                const previewUrl = article?.url;
+                if (previewUrl) {
+                  console.log('Preview URL:', previewUrl);
+                  window.open(previewUrl, '_blank');
+                } else {
+                  console.error('No URL returned from backend');
+                  alert('Error: Could not generate preview URL');
+                }
               } catch (error) {
                 console.error('Error saving for preview:', error);
+                alert('Error saving article for preview');
               }
             }}
             disabled={!title || !content || isLoading}
@@ -463,47 +434,331 @@ export function ContentEditor({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              placeholder={`Enter ${type.toLowerCase()} title`}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+      <div className="grid grid-cols-4 gap-6">
+        <div className="col-span-3 space-y-6">
 
-          <div className="space-y-2">
-            <Label htmlFor="excerpt">Excerpt</Label>
-            <Input
-              id="excerpt"
-              placeholder="Brief description of the article..."
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-            />
-          </div>
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-gray-900">Article Content</CardTitle>
+              <p className="text-sm text-gray-600">Create and edit your article content</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">Title *</Label>
+                  <div className="flex items-center gap-2">
+                    {title && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                    <span className="text-xs text-gray-500">{title.length} characters</span>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-3 mb-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="h-4 w-4 text-orange-600" />
+                    <span className="text-xs font-medium text-orange-700">AI Title Generator</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="titleTopic"
+                      placeholder="Enter 3-4 keywords (e.g., gaming, review, zelda, nintendo)..."
+                      className="flex-1 text-xs bg-white border-orange-200 focus:border-orange-400"
+                    />
+                    <button
+                      type="button"
+                      form=""
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const topicInput = document.getElementById('titleTopic') as HTMLInputElement;
+                        const topic = topicInput?.value?.trim();
+                        if (!topic) {
+                          alert('Please enter keywords first');
+                          return;
+                        }
+                        
+                        const keywords = topic.split(',').map(k => k.trim()).filter(k => k.length > 0);
+                        if (keywords.length < 2) {
+                          alert('Please enter at least 2-3 keywords separated by commas');
+                          return;
+                        }
+                        
+                        setTitleLoading(true);
+                        try {
+                          const response = await fetch('/api/articles/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              keywords: keywords,
+                              contentType: 'TITLE',
+                              category: initialCategory
+                            })
+                          });
+                          const data = await response.json();
+                          if (data.success && data.article) {
+                            setTitle(data.article.title);
+                            if (data.article.suggestions) {
+                              setTitleSuggestions(data.article.suggestions);
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Title generation failed:', error);
+                        } finally {
+                          setTitleLoading(false);
+                        }
+                      }}
+                      disabled={titleLoading}
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {titleLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Generate
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {titleSuggestions.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <div className="text-xs font-medium text-orange-700">AI Suggestions (click to use):</div>
+                      <div className="space-y-1">
+                        {titleSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => setTitle(suggestion)}
+                            className="w-full text-left px-2 py-1 text-xs bg-white border border-orange-200 rounded hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <Input
+                  id="title"
+                  placeholder={`Enter ${type.toLowerCase()} title`}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  className="text-lg font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="content">Content *</Label>
-            <TiptapEditor
-              content={content}
-              onChange={setContent}
-              placeholder={`Write your ${type.toLowerCase()} content here...`}
-              className="min-h-[500px]"
-            />
-          </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="excerpt" className="text-sm font-medium text-gray-700">Description</Label>
+                  <div className="flex items-center gap-2">
+                    {excerpt && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                    <span className="text-xs text-gray-500">{excerpt?.length || 0} characters</span>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-3 mb-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="h-4 w-4 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-700">AI Description Generator</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="descTopic"
+                      placeholder="Enter topic for description generation..."
+                      className="flex-1 text-xs bg-white border-blue-200 focus:border-blue-400"
+                    />
+                    <button
+                      type="button"
+                      form=""
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const topicInput = document.getElementById('descTopic') as HTMLInputElement;
+                        const topic = topicInput?.value?.trim() || title;
+                        if (!topic) {
+                          alert('Please enter a topic or add title first');
+                          return;
+                        }
+                        
+                        setDescLoading(true);
+                        try {
+                          const response = await fetch('/api/articles/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              keywords: topic.split(',').map(k => k.trim()).filter(k => k.length > 0),
+                              contentType: 'DESCRIPTION'
+                            })
+                          });
+                          const data = await response.json();
+                          if (data.success && data.article) {
+                            setExcerpt(data.article.excerpt);
+                          }
+                        } catch (error) {
+                          console.error('Description generation failed:', error);
+                        } finally {
+                          setDescLoading(false);
+                        }
+                      }}
+                      disabled={descLoading}
+                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded"
+                    >
+                      {descLoading ? 'Generating...' : 'Generate'}
+                    </button>
+                  </div>
+                </div>
+                
+                <Input
+                  id="excerpt"
+                  placeholder="Brief description of the article..."
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content" className="text-sm font-medium text-gray-700">Content *</Label>
+                  <div className="flex items-center gap-2">
+                    {content && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                    <div className="text-xs text-gray-500">
+                      <span className="font-medium">{content.replace(/<[^>]*>/g, '').split(' ').filter(word => word.length > 0).length}</span> words
+                      <span className="mx-1">•</span>
+                      <span className="font-medium">{content.length}</span> characters
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">AI Content Generator</h3>
+                      <p className="text-xs text-gray-600">Powered by Gemini 2.5 Pro</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="aiTopic" className="text-xs font-medium text-gray-700 mb-1 block">What would you like to write about?</Label>
+                      <Input
+                        id="aiTopic"
+                        placeholder="e.g., The Batman 2022 movie review, Gaming tips for beginners..."
+                        className="bg-white/80 border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
+                          const topicInput = document.getElementById('aiTopic') as HTMLInputElement;
+                          const topic = topicInput?.value?.trim();
+                          if (!topic) {
+                            alert('Please enter a topic first');
+                            return;
+                          }
+                          
+                          setContentLoading(true);
+                          try {
+                            const response = await fetch('/api/articles/generate', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                keywords: [topic],
+                                contentType: 'ARTICLE',
+                                category: initialCategory
+                              })
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success && data.article) {
+                              setContent(data.article.content);
+                              if (data.article.excerpt) {
+                                setExcerpt(data.article.excerpt);
+                              }
+                            } else {
+                              alert('AI generation failed: ' + (data.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('Content generation failed:', error);
+                            alert('AI generation failed: ' + error.message);
+                          } finally {
+                            setContentLoading(false);
+                          }
+                        }}
+                        disabled={contentLoading}
+                        className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-sm rounded text-sm font-medium"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1 inline" />
+                        {contentLoading ? 'Generating...' : 'Generate Content'}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const topicInput = document.getElementById('aiTopic') as HTMLInputElement;
+                          if (topicInput) topicInput.value = title || '';
+                        }}
+                        className="px-3 py-1.5 text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded font-medium"
+                      >
+                        Use Title
+                      </button>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 bg-white/60 rounded-lg p-2">
+                      💡 <strong>Tip:</strong> Be specific about your topic for better results. Include the type of content you want (review, guide, analysis, etc.)
+                    </div>
+                  </div>
+                </div>
+                
+
+                <div className="border border-gray-300 rounded-lg overflow-hidden relative">
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs text-gray-500 border">
+                      {content.replace(/<[^>]*>/g, '').split(' ').filter(word => word.length > 0).length} words
+                    </div>
+                  </div>
+                  <TiptapEditor
+                    content={content}
+                    onChange={setContent}
+                    placeholder={`Write your ${type.toLowerCase()} content here...`}
+                    className="min-h-[500px]"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <ImageIcon className="h-4 w-4" />
-                Media Content
-              </CardTitle>
+        <div className="space-y-6">
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg flex items-center justify-center">
+                  <ImageIcon className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-semibold text-gray-900">Media & Assets</CardTitle>
+                  <p className="text-xs text-gray-500">Upload images and videos</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -517,8 +772,10 @@ export function ContentEditor({
               </div>
               
               <div className="space-y-2">
-                <Label>Video URL</Label>
+                <Label htmlFor="videoUrl">Video URL</Label>
                 <Input
+                  id="videoUrl"
+                  name="videoUrl"
                   placeholder="YouTube/Vimeo URL"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
@@ -526,8 +783,10 @@ export function ContentEditor({
               </div>
               
               <div className="space-y-2">
-                <Label>Video Thumbnail</Label>
+                <Label htmlFor="thumbnail">Video Thumbnail</Label>
                 <Input
+                  id="thumbnail"
+                  name="thumbnail"
                   placeholder="Thumbnail image URL"
                   value={thumbnail}
                   onChange={(e) => setThumbnail(e.target.value)}
@@ -536,9 +795,17 @@ export function ContentEditor({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Status</CardTitle>
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <Send className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-semibold text-gray-900">Publishing</CardTitle>
+                  <p className="text-xs text-gray-500">Control visibility and timing</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
@@ -596,10 +863,12 @@ export function ContentEditor({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Schedule Time</Label>
+                    <Label htmlFor="scheduleTime">Schedule Time</Label>
                     <div className="flex items-center space-x-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <Input
+                        id="scheduleTime"
+                        name="scheduleTime"
                         type="time"
                         value={scheduleTime}
                         onChange={(e) => setScheduleTime(e.target.value)}
@@ -619,46 +888,24 @@ export function ContentEditor({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Content Settings</CardTitle>
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+                  <Settings className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-semibold text-gray-900">Settings</CardTitle>
+                  <p className="text-xs text-gray-500">Configure article options</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={(value) => setCategory(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select content type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest-updates">Latest Updates</SelectItem>
-                    <SelectItem value="game-reviews">Game Reviews</SelectItem>
-                    <SelectItem value="movie-reviews">Movie Reviews</SelectItem>
-                    <SelectItem value="tv-reviews">TV Reviews</SelectItem>
-                    <SelectItem value="comic-reviews">Comic Reviews</SelectItem>
-                    <SelectItem value="tech-reviews">Tech Reviews</SelectItem>
-                    <SelectItem value="interviews">Interviews</SelectItem>
-                    <SelectItem value="spotlights">Spotlights</SelectItem>
-                    <SelectItem value="top-lists">Top Lists</SelectItem>
-                    <SelectItem value="opinions">Opinions</SelectItem>
-                    <SelectItem value="guides">Guides</SelectItem>
-                    <SelectItem value="wiki">Wiki</SelectItem>
-                    <SelectItem value="videos">Videos</SelectItem>
-                    <SelectItem value="nintendo">Nintendo</SelectItem>
-                    <SelectItem value="xbox">Xbox</SelectItem>
-                    <SelectItem value="playstation">PlayStation</SelectItem>
-                    <SelectItem value="pc-gaming">PC Gaming</SelectItem>
-                    <SelectItem value="mobile-gaming">Mobile Gaming</SelectItem>
-                    <SelectItem value="tech">Tech</SelectItem>
-                    <SelectItem value="anime">Anime</SelectItem>
-                    <SelectItem value="cosplay">Cosplay</SelectItem>
-                    <SelectItem value="science-comics">Science & Comics</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Tags</Label>
+                <Label htmlFor="tags">Tags</Label>
                 <Input
+                  id="tags"
+                  name="tags"
                   placeholder="gaming, review, nintendo, zelda..."
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
@@ -678,16 +925,20 @@ export function ContentEditor({
               {type.includes("Review") && (
                 <>
                   <div className="space-y-2">
-                    <Label>Purchase Link</Label>
+                    <Label htmlFor="purchaseLink">Purchase Link</Label>
                     <Input
+                      id="purchaseLink"
+                      name="purchaseLink"
                       placeholder="https://store.steampowered.com/..."
                       value={purchaseLink}
                       onChange={(e) => setPurchaseLink(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Price</Label>
+                    <Label htmlFor="price">Price</Label>
                     <Input
+                      id="price"
+                      name="price"
                       placeholder="$59.99"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
@@ -698,38 +949,219 @@ export function ContentEditor({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">SEO Meta Tags</CardTitle>
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
+                  <Search className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-semibold text-gray-900">SEO Optimization</CardTitle>
+                  <p className="text-xs text-gray-500">Powered by Gemini 2.5 Pro</p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <Label>Meta Title</Label>
-                <Input
-                  placeholder="SEO title for search engines"
-                  value={metaTitle}
-                  onChange={(e) => setMetaTitle(e.target.value)}
-                  maxLength={60}
-                />
-                <p className="text-xs text-muted-foreground">{metaTitle.length}/60 characters</p>
+            <CardContent className="space-y-4">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-700">AI SEO Generator</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Input
+                      id="seoTopic"
+                      placeholder="Enter topic for SEO optimization..."
+                      className="bg-white border-purple-200 focus:border-purple-400 text-sm"
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const topicInput = document.getElementById('seoTopic') as HTMLInputElement;
+                        const topic = topicInput?.value?.trim() || title;
+                        if (!topic) {
+                          alert('Please enter a topic or add title first');
+                          return;
+                        }
+                        
+                        setSeoLoading(true);
+                        try {
+                          const response = await fetch('/api/articles/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              keywords: [topic],
+                              contentType: 'SEO'
+                            })
+                          });
+                          const data = await response.json();
+                          if (data.success && data.article) {
+                            setMetaTitle(data.article.title);
+                            setMetaDescription(data.article.excerpt);
+                          }
+                        } catch (error) {
+                          console.error('SEO generation failed:', error);
+                        } finally {
+                          setSeoLoading(false);
+                        }
+                      }}
+                      disabled={seoLoading}
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {seoLoading ? 'Generating SEO...' : 'Generate Meta Title & Description'}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const topicInput = document.getElementById('seoTopic') as HTMLInputElement;
+                        const topic = topicInput?.value?.trim() || title;
+                        if (!topic) {
+                          alert('Please enter a topic or add title first');
+                          return;
+                        }
+                        
+                        setTagsLoading(true);
+                        try {
+                          const response = await fetch('/api/articles/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              keywords: [topic],
+                              contentType: 'TAGS'
+                            })
+                          });
+                          const data = await response.json();
+                          if (data.success && data.article) {
+                            setTags(data.article.keywords.join(', '));
+                            setMetaKeywords(data.article.keywords.join(', '));
+                          }
+                        } catch (error) {
+                          console.error('Tags generation failed:', error);
+                        } finally {
+                          setTagsLoading(false);
+                        }
+                      }}
+                      disabled={tagsLoading}
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {tagsLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          Generating Tags...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Generate SEO Tags & Keywords
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-white/50">
+                    <div className="flex items-start gap-2">
+                      <div className="text-sm">💡</div>
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Pro Tip:</span> Be specific with your topic for better SEO results. Include keywords like "review", "guide", or "analysis".
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 bg-white/60 rounded-lg p-2">
+                    💡 <strong>Tip:</strong> Enter a specific topic to generate optimized SEO elements
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Meta Description</Label>
-                <Input
-                  placeholder="Brief description for search results"
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
-                  maxLength={160}
-                />
-                <p className="text-xs text-muted-foreground">{metaDescription.length}/160 characters</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Meta Keywords</Label>
-                <Input
-                  placeholder="gaming, review, guide (comma separated)"
-                  value={metaKeywords}
-                  onChange={(e) => setMetaKeywords(e.target.value)}
-                />
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="metaTitle" className="text-sm font-medium text-gray-700">Meta Title</Label>
+                    <div className="flex items-center gap-2">
+                      {metaTitle && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                      <span className="text-xs text-gray-500">{metaTitle.length}/60</span>
+                    </div>
+                  </div>
+                  <Input
+                    id="metaTitle"
+                    name="metaTitle"
+                    placeholder="SEO title for search engines"
+                    value={metaTitle}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 60) {
+                        setMetaTitle(e.target.value);
+                      }
+                    }}
+                    maxLength={60}
+                    className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  />
+                  <div className={`text-xs px-2 py-1 rounded-full inline-block ${
+                    metaTitle.length >= 50 && metaTitle.length <= 60 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {metaTitle.length >= 50 && metaTitle.length <= 60 ? 'Optimal length' : 'Adjust length'}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="metaDescription" className="text-sm font-medium text-gray-700">Meta Description</Label>
+                    <div className="flex items-center gap-2">
+                      {metaDescription && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                      <span className="text-xs text-gray-500">{metaDescription.length}/160</span>
+                    </div>
+                  </div>
+                  <textarea
+                    id="metaDescription"
+                    name="metaDescription"
+                    placeholder="Brief description for search results"
+                    value={metaDescription}
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    maxLength={160}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 resize-none text-sm"
+                  />
+                  <div className={`text-xs px-2 py-1 rounded-full inline-block ${
+                    metaDescription.length >= 150 && metaDescription.length <= 160 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {metaDescription.length >= 150 && metaDescription.length <= 160 ? 'Optimal length' : 'Adjust length'}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="seoTags" className="text-sm font-medium text-gray-700">Tags</Label>
+                    <div className="flex items-center gap-2">
+                      {tags && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                      <span className="text-xs text-green-600 font-medium">AI Generated</span>
+                    </div>
+                  </div>
+                  <Input
+                    id="seoTags"
+                    name="seoTags"
+                    placeholder="gaming, review, guide, nintendo..."
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  />
+                  <p className="text-xs text-gray-500">Separate tags with commas</p>
+                </div>
               </div>
             </CardContent>
           </Card>

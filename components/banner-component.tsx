@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { ImageUpload } from './image-upload'
 
 interface BannerData {
   title: string
@@ -70,12 +71,11 @@ export function BannerComponent({ initialData, onSave }: BannerComponentProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
+            <Label>Banner Image</Label>
+            <ImageUpload
               value={formData.imageUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-              placeholder="https://example.com/image.jpg"
+              onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+              disabled={false}
             />
           </div>
 

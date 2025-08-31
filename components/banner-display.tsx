@@ -1,5 +1,7 @@
 "use client"
 
+import { getBannerImageUrl } from "@/lib/cloudinary";
+
 interface BannerDisplayProps {
   page: string
   position: 'top' | 'bottom' | 'sidebar'
@@ -12,7 +14,7 @@ export function BannerDisplay({ page, position }: BannerDisplayProps) {
       id: '1',
       title: 'Gaming Sale 2024',
       content: 'Up to 70% off on top gaming titles',
-      imageUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      imageUrl: getBannerImageUrl('sample'),
       linkUrl: 'https://koodos.in/sale',
       position: 'TOP',
       page: 'home',

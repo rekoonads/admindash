@@ -23,20 +23,41 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [analyticsRes, articlesRes] = await Promise.all([
-          fetch('/api/analytics'),
-          fetch('/api/articles')
-        ])
+        // Set default stats to prevent errors
+        setStats({
+          totalArticles: 0,
+          publishedArticles: 0,
+          draftArticles: 0,
+          totalViews: 0
+        })
         
-        if (analyticsRes.ok) {
-          const analyticsData = await analyticsRes.json()
-          if (analyticsData.success) {
-            setStats(analyticsData.data.overview)
+        // Try to fetch analytics data
+        try {
+          const analyticsRes = await fetch('/api/analytics')
+          if (analyticsRes.ok) {
+            const analyticsData = await analyticsRes.json()
+            if (analyticsData.success) {
+              setStats(analyticsData.data.overview)
+            }
           }
+        } catch (e) {
+          console.warn('Analytics API not available:', e)
         }
         
-        if (articlesRes.ok) {
-          const articlesData = await articlesRes.json()
+        // Try to fetch articles data
+        try {
+          const articlesRes = await fetch('/api/articles')
+          if (articlesRes.ok) {
+            const articlesData = await articlesRes.json()
+            
+            // Ensure articlesData is an array
+            if (!Array.isArray(articlesData)) {
+              console.warn('Articles data is not an array, using empty array')
+              setContentStats([])
+              setTrendingContent([])
+              setRecentActivity([])
+              return
+            }
           
           // Process content stats by category
           const categoryStats: Record<string, number> = {}
@@ -44,8 +65,8 @@ export default function AdminDashboard() {
             // Ensure we get a string value, not an object
             const categoryName = typeof article.category === 'object' && article.category?.name 
               ? article.category.name 
-              : typeof article.category_id === 'string' 
-              ? article.category_id 
+              : typeof article.categoryId === 'string' 
+              ? article.categoryId 
               : 'Other'
             categoryStats[categoryName] = (categoryStats[categoryName] || 0) + 1
           })
@@ -61,16 +82,16 @@ export default function AdminDashboard() {
           // Get trending content (top viewed articles)
           const trending = articlesData
             .filter((article: any) => article.status === 'PUBLISHED')
-            .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
+            .sort((a: any, b: any) => (b.viewsCount || 0) - (a.viewsCount || 0))
             .slice(0, 4)
             .map((article: any) => ({
               title: article.title || 'Untitled',
               category: typeof article.category === 'object' && article.category?.name 
                 ? article.category.name 
-                : typeof article.category_id === 'string' 
-                ? article.category_id.replace('-', ' ') 
+                : typeof article.categoryId === 'string' 
+                ? article.categoryId.replace('-', ' ') 
                 : 'General',
-              views: (article.views || 0).toLocaleString(),
+              views: (article.viewsCount || 0).toLocaleString(),
               engagement: Math.floor(Math.random() * 20) + 80, // Placeholder for engagement
               slug: article.slug
             }))
@@ -78,18 +99,28 @@ export default function AdminDashboard() {
           
           // Get recent activity
           const recent = articlesData
-            .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+            .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
             .slice(0, 5)
             .map((article: any) => ({
               action: article.status === 'PUBLISHED' ? 'Published' : 'Updated',
               title: article.title,
-              time: new Date(article.updated_at).toLocaleString(),
+              time: new Date(article.updatedAt).toLocaleString(),
               type: article.type || 'Article'
             }))
           setRecentActivity(recent)
-        }
+          }
+        } catch (e) {
+            console.warn('Articles API not available:', e)
+            setContentStats([])
+            setTrendingContent([])
+            setRecentActivity([])
+          }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
+        // Set empty states to prevent crashes
+        setContentStats([])
+        setTrendingContent([])
+        setRecentActivity([])
       } finally {
         setLoading(false)
       }

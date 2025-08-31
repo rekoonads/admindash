@@ -2,6 +2,7 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import CharacterCount from "@tiptap/extension-character-count";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -81,6 +82,7 @@ export function TiptapEditor({
       StarterKit.configure({
         link: false,
       }),
+      CharacterCount,
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
@@ -516,6 +518,8 @@ export function TiptapEditor({
                       <div className="text-sm font-medium">Add Link</div>
                       <div className="flex gap-2">
                         <Input
+                          id="linkUrl"
+                          name="linkUrl"
                           placeholder="https://example.com"
                           value={linkUrl}
                           onChange={(e) => setLinkUrl(e.target.value)}
@@ -551,6 +555,8 @@ export function TiptapEditor({
                       <div className="text-sm font-medium">Add Image</div>
                       <div className="flex gap-2">
                         <Input
+                          id="imageUrl"
+                          name="imageUrl"
                           placeholder="https://example.com/image.jpg"
                           value={imageUrl}
                           onChange={(e) => setImageUrl(e.target.value)}
@@ -596,6 +602,8 @@ export function TiptapEditor({
       {showCodeView ? (
         <div className="min-h-[300px] max-h-[600px] overflow-y-auto">
           <Textarea
+            id="htmlContent"
+            name="htmlContent"
             value={htmlContent}
             onChange={(e) => handleHtmlChange(e.target.value)}
             className="min-h-[300px] max-h-[600px] font-mono text-sm border-0 rounded-none resize-none focus-visible:ring-0"

@@ -8,7 +8,7 @@ export default function CosplayPage() {
     <ContentManagementPage
       title="Cosplay Content"
       description="Manage cosplay features, galleries, and coverage"
-      contentType="Cosplay Article"
+      contentType="Cosplay"
       category="cosplay"
       icon={Palette}
     />

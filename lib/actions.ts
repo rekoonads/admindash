@@ -4,10 +4,11 @@ import { prisma } from "./prisma";
 import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
+import { generateArticleUrl } from '@/lib/url-utils';
+
 export async function createArticle(formData: FormData) {
   try {
     const { userId } = await auth();
-    
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -17,10 +18,32 @@ export async function createArticle(formData: FormData) {
     const excerpt = (formData.get("excerpt") as string) || "";
     const categoryId = formData.get("categoryId") as string;
     
-    if (!categoryId) {
-      throw new Error("Category is required - no categoryId provided");
+    console.log('📝 Creating article with categoryId:', categoryId);
+    console.log('🔍 Raw form data received:', {
+      title,
+      categoryId,
+      type: formData.get('type'),
+      status: formData.get('status')
+    });
+    console.log('🔍 All form data keys:', Array.from(formData.keys()));
+    console.log('🔍 All form data values:', Array.from(formData.entries()));
+    
+    // Validate required fields
+    if (!title?.trim() || !content?.trim()) {
+      throw new Error("Title and content are required");
     }
     
+    console.log('📋 Backend received:', {
+      categoryId,
+      title,
+      nodeEnv: process.env.NODE_ENV,
+      baseUrl: process.env.NEXT_PUBLIC_SITE_URL
+    });
+    
+    if (!categoryId?.trim()) {
+      console.error('❌ No categoryId provided, received:', categoryId);
+      throw new Error("Category is required. Please select a valid category.");
+    }
 
     const categoriesJson = formData.get("categories") as string;
     let selectedCategories = categoriesJson ? JSON.parse(categoriesJson) : [categoryId];
@@ -48,48 +71,31 @@ export async function createArticle(formData: FormData) {
     const purchaseLink = (formData.get("purchaseLink") as string) || "";
     const price = (formData.get("price") as string) || "";
 
-
-
-    if (!title?.trim() || !content?.trim()) {
-      console.error("Missing required fields:", { title: !!title, content: !!content });
-      throw new Error("Title and content are required");
-    }
-
-    // Validate category exists and get category data
-    let categoryExists = await prisma.category.findUnique({
-      where: { slug: categoryId },
+    console.log('Looking for category with ID/slug:', categoryId);
+    
+    // List all available categories first
+    const allCategories = await prisma.category.findMany({ select: { id: true, slug: true, name: true } });
+    console.log('All available categories:', allCategories);
+    
+    // Find category by ID or slug
+    let categoryExists = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { id: categoryId },
+          { slug: categoryId }
+        ]
+      },
       select: { id: true, slug: true, name: true }
     });
     
-    // If category doesn't exist, try to find by ID or create it
+    console.log('Found category:', categoryExists);
+    
     if (!categoryExists) {
-      // Try to find by ID first
-      categoryExists = await prisma.category.findFirst({
-        where: { id: categoryId },
-        select: { id: true, slug: true, name: true }
+      console.error('❌ Category lookup failed:', {
+        searchedFor: categoryId,
+        availableCategories: await prisma.category.findMany({ select: { slug: true, name: true } })
       });
-      
-      if (!categoryExists) {
-        console.log(`Creating new category: ${categoryId}`);
-        try {
-          categoryExists = await prisma.category.create({
-            data: {
-              name: categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' '),
-              slug: categoryId,
-              description: `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1).replace(/-/g, ' ')} content`,
-              is_active: true
-            },
-            select: { id: true, slug: true, name: true }
-          });
-        } catch (createError) {
-          console.error('Failed to create category, using default:', createError);
-          // Use a default category if creation fails
-          categoryExists = await prisma.category.findFirst({
-            where: { slug: 'news' },
-            select: { id: true, slug: true, name: true }
-          }) || { id: 'news', slug: 'news', name: 'News' };
-        }
-      }
+      throw new Error(`Category not found: ${categoryId}. Please select a valid category.`);
     }
     
 
@@ -120,12 +126,6 @@ export async function createArticle(formData: FormData) {
             last_login: new Date()
           }
         });
-      } else {
-        // Update last login for existing user
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { last_login: new Date() }
-        });
       }
     } catch (userError) {
       console.error("User creation/update error:", userError);
@@ -138,13 +138,31 @@ export async function createArticle(formData: FormData) {
       `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 
       clerkUser.username || 
       clerkUser.fullName || 
+      clerkUser.emailAddresses?.[0]?.emailAddress?.split('@')[0] ||
       'User' : 
-      `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
-      user.username || 
+      `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 
+      user?.username || 
       'User';
+    
+    console.log('👤 Author info:', {
+      clerkUser: clerkUser ? {
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        username: clerkUser.username,
+        fullName: clerkUser.fullName,
+        email: clerkUser.emailAddresses?.[0]?.emailAddress
+      } : null,
+      finalAuthorName: authorName
+    });
     
 
 
+    console.log('💾 Saving article with category:', {
+      categoryId: categoryExists.id,
+      categorySlug: categoryExists.slug,
+      categoryName: categoryExists.name
+    });
+    
     const article = await prisma.article.create({
       data: {
         title,
@@ -155,7 +173,7 @@ export async function createArticle(formData: FormData) {
         video_url: videoUrl || null,
         type: type as any,
         status: status as any,
-        category_id: categoryExists.slug,
+        category_id: categoryExists.id,
         author_id: user?.id || userId,
         author_name: authorName,
         platforms: platform ? [platform as any] : [],
@@ -175,11 +193,26 @@ export async function createArticle(formData: FormData) {
       }
     });
 
-
+    // Generate dynamic URL based on category and environment
+    const articleUrl = generateArticleUrl(categoryExists.slug, slug);
+    
+    console.log('✅ Article created:', {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      category: categoryExists.slug,
+      url: articleUrl
+    });
 
     revalidatePath("/admin/content");
     revalidatePath("/");
-    return article;
+    
+    // Return article with generated URL
+    return {
+      ...article,
+      url: articleUrl,
+      category: categoryExists
+    };
   } catch (error) {
     console.error("Error in createArticle:", error);
     throw new Error(`Failed to create article: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -198,7 +231,16 @@ export async function getArticles(filters?: {
     const where: any = {};
 
     if (filters?.status) where.status = filters.status;
-    if (filters?.category) where.category_id = filters.category;
+    if (filters?.category) {
+      // Find category by slug to get the ID
+      const categoryExists = await prisma.category.findFirst({
+        where: { slug: filters.category },
+        select: { id: true }
+      });
+      if (categoryExists) {
+        where.category_id = categoryExists.id;
+      }
+    }
     if (filters?.type) where.type = filters.type;
     
     if (filters?.search) {
@@ -217,6 +259,11 @@ export async function getArticles(filters?: {
       orderBy: { created_at: "desc" },
       take: filters?.limit || undefined,
     });
+
+    if (!Array.isArray(articles)) {
+      console.error('Articles is not an array:', articles);
+      return [];
+    }
 
     // Transform articles to match Post type expectations
     const transformedArticles = articles.map(article => ({
@@ -237,10 +284,7 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
     const where: any = { status: "PUBLISHED" };
     
     if (categorySlug) {
-      where.OR = [
-        { category_id: categorySlug },
-        { category: { slug: categorySlug } }
-      ];
+      where.category = { slug: categorySlug };
     }
     if (type) where.type = type;
     if (featured) where.is_featured = true;
@@ -253,6 +297,11 @@ export async function getPublishedArticles(categorySlug?: string, type?: string,
       orderBy: { published_at: "desc" },
       take: limit || 20,
     });
+
+    if (!Array.isArray(articles)) {
+      console.error('Articles is not an array:', articles);
+      return [];
+    }
 
     // Transform articles to match Post type expectations
     const transformedArticles = articles.map(article => ({
@@ -342,11 +391,6 @@ export const updatePostStatus = updateArticleStatus;
 
 export async function updatePost(id: string, formData: FormData) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      throw new Error("Authentication required");
-    }
-    
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const excerpt = (formData.get("excerpt") as string) || "";
@@ -374,7 +418,22 @@ export async function updatePost(id: string, formData: FormData) {
     };
 
     if (categoryId) {
-      updateData.category_id = categoryId;
+      // Validate category exists
+      const categoryExists = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { id: categoryId },
+            { slug: categoryId }
+          ]
+        },
+        select: { id: true, slug: true, name: true }
+      });
+      
+      if (!categoryExists) {
+        throw new Error(`Category not found: ${categoryId}`);
+      }
+      
+      updateData.category_id = categoryExists.id;
     }
 
     const article = await prisma.article.update({
@@ -385,9 +444,16 @@ export async function updatePost(id: string, formData: FormData) {
       }
     });
 
+    // Generate dynamic URL
+    const articleUrl = generateArticleUrl(article.category?.slug || 'latest-updates', slug);
+
     revalidatePath("/admin/content");
     revalidatePath("/");
-    return article;
+    
+    return {
+      ...article,
+      url: articleUrl
+    };
   } catch (error) {
     console.error("Error in updatePost:", error);
     throw error;
@@ -435,7 +501,14 @@ export async function getBanners() {
       },
       take: 5,
     });
-    return banners;
+    
+    // Add dynamic URLs to banners
+    const bannersWithUrls = banners.map(banner => ({
+      ...banner,
+      url: generateArticleUrl(banner.category?.slug || 'latest-updates', banner.slug)
+    }));
+    
+    return bannersWithUrls;
   } catch (error) {
     console.error('Error in getBanners:', error);
     return [];

@@ -8,7 +8,7 @@ export default function WikiPage() {
     <ContentManagementPage
       title="Wiki"
       description="Manage wiki articles and reference content"
-      contentType="Wiki Article"
+      contentType="Wiki"
       category="wiki"
       icon={Globe}
     />

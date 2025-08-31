@@ -18,7 +18,8 @@ async function main() {
     { name: 'Xbox', slug: 'xbox', description: 'Xbox gaming content' },
     { name: 'Nintendo Switch', slug: 'nintendo-switch', description: 'Nintendo Switch content' },
     { name: 'Mobile Gaming', slug: 'mobile-gaming', description: 'Mobile gaming content' },
-    { name: 'Science', slug: 'science', description: 'Science and technology' }
+    { name: 'Science', slug: 'science', description: 'Science and technology' },
+    { name: 'News', slug: 'news', description: 'General news articles' }
   ]
 
   for (const category of categories) {

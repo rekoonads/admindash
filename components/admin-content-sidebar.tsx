@@ -21,6 +21,7 @@ import {
   Palette,
   Atom,
   Settings,
+  Search,
   Users,
   BarChart3,
   FileText,
@@ -28,6 +29,8 @@ import {
   Tags,
   Folder,
   Plus,
+  Wand2,
+
 } from "lucide-react"
 
 import {
@@ -71,11 +74,11 @@ const adminNavData = {
       icon: Star,
       items: [
         { title: "All Reviews", url: "/admin/content/reviews" },
-        { title: "Game Reviews", url: "/admin/content/reviews?type=games" },
-        { title: "Movie Reviews", url: "/admin/content/reviews?type=movies" },
-        { title: "TV Reviews", url: "/admin/content/reviews?type=tv" },
-        { title: "Comic Reviews", url: "/admin/content/reviews?type=comics" },
-        { title: "Tech Reviews", url: "/admin/content/reviews?type=tech" },
+        { title: "Game Reviews", url: "/admin/content/game-reviews" },
+        { title: "Movie Reviews", url: "/admin/content/movie-reviews" },
+        { title: "TV Reviews", url: "/admin/content/tv-reviews" },
+        { title: "Comic Reviews", url: "/admin/content/comic-reviews" },
+        { title: "Tech Reviews", url: "/admin/content/tech-reviews" },
       ],
     },
     {
@@ -148,6 +151,7 @@ const adminNavData = {
       icon: List,
     },
   ],
+
   system: [
     {
       title: "Users",
@@ -156,8 +160,17 @@ const adminNavData = {
     },
     {
       title: "Settings",
-      url: "/admin/settings",
       icon: Settings,
+      items: [
+        { title: "General", url: "/admin/settings" },
+        { title: "About Koodos", url: "/admin/pages/about" },
+        { title: "Contact Editorial Team", url: "/admin/pages/contact" },
+        { title: "Advertise With Us", url: "/admin/pages/advertise" },
+        { title: "Press", url: "/admin/pages/press" },
+        { title: "User Agreement", url: "/admin/pages/user-agreement" },
+        { title: "Privacy Policy", url: "/admin/pages/privacy" },
+        { title: "Cookie Policy", url: "/admin/pages/cookies" },
+      ],
     },
   ],
 }
@@ -292,12 +305,41 @@ export function AdminContentSidebar({ ...props }: React.ComponentProps<typeof Si
             <SidebarMenu>
               {adminNavData.system.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <a href={item.url} onClick={(e) => handleNavigation(item.url, e)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
+                  {item.items ? (
+                    <Collapsible
+                      open={openItems.includes(item.title)}
+                      onOpenChange={() => toggleItem(item.title)}
+                      className="group/collapsible"
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton>
+                          <item.icon />
+                          <span>{item.title}</span>
+                          <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton asChild isActive={isActive(subItem.url)}>
+                                <a href={subItem.url} onClick={(e) => handleNavigation(subItem.url, e)}>
+                                  <span>{subItem.title}</span>
+                                </a>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ) : (
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <a href={item.url} onClick={(e) => handleNavigation(item.url, e)}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

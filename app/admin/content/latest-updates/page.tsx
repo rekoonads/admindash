@@ -1,35 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ContentEditor } from "@/components/content-editor"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { ContentEditor } from "@/components/content-editor";
+import { useState } from "react";
 
 export default function LatestUpdatesPage() {
-  const [showEditor, setShowEditor] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  if (showEditor) {
-    return (
-      <ContentEditor
-        type="latest-updates"
-        onSave={() => setShowEditor(false)}
-        onPublish={() => setShowEditor(false)}
-      />
-    )
-  }
+  const handleSave = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handlePublish = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Latest Updates</h1>
-          <p className="text-muted-foreground">Manage breaking news and updates</p>
-        </div>
-        <Button onClick={() => setShowEditor(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Update
-        </Button>
-      </div>
+    <div className="container mx-auto py-6">
+      <ContentEditor
+        key={refreshKey}
+        type="Latest Updates"
+        onSave={handleSave}
+        onPublish={handlePublish}
+      />
     </div>
-  )
+  );
 }

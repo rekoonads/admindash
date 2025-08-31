@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
@@ -12,62 +12,53 @@ export async function GET(
         status: "PUBLISHED"
       },
       include: {
-        author: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            username: true,
-            avatar: true,
-          }
-        },
         category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          }
+          select: { id: true, name: true, slug: true },
         },
-        _count: {
-          select: {
-            comments: true,
-            reactions: true,
-            bookmarks: true,
-            shares: true,
-          }
-        }
-      }
-    })
+      },
+    });
 
     if (!article) {
-      return NextResponse.json({ error: "Article not found" }, { status: 404 })
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
 
-    // Increment view count
-    await prisma.article.update({
-      where: { id: article.id },
-      data: { views_count: { increment: 1 } }
-    })
+    // Transform to match frontend schema
+    const transformedArticle = {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      excerpt: article.excerpt,
+      content: article.content,
+      featuredImage: article.featured_image,
+      published: article.status === "PUBLISHED",
+      featured: article.is_featured,
+      views: article.views_count,
+      likes: article.likes_count,
+      readTime: article.read_time || 5,
+      createdAt: article.created_at,
+      updatedAt: article.updated_at,
+      publishedAt: article.published_at,
+      categoryId: article.category_id,
+      category: article.category ? {
+        id: article.category.id,
+        name: article.category.name,
+        slug: article.category.slug
+      } : null,
+      authorId: article.author_id,
+      author: {
+        id: article.author_id,
+        firstName: article.author_name?.split(' ')[0] || 'User',
+        lastName: article.author_name?.split(' ').slice(1).join(' ') || '',
+        name: article.author_name || 'User'
+      },
+      tags: [], // Add tags if needed
+      metaDescription: article.meta_description,
+      metaKeywords: article.meta_keywords,
+    };
 
-    // Track view
-    const userAgent = request.headers.get("user-agent")
-    const forwarded = request.headers.get("x-forwarded-for")
-    const ip = forwarded ? forwarded.split(",")[0] : "unknown"
-
-    await prisma.view.create({
-      data: {
-        article_id: article.id,
-        ip_address: ip,
-        user_agent: userAgent,
-      }
-    }).catch(() => {}) // Ignore errors for view tracking
-
-    return NextResponse.json(article)
+    return NextResponse.json(transformedArticle);
   } catch (error) {
-    console.error("Error fetching article:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch article" },
-      { status: 500 }
-    )
+    console.error("Error fetching article:", error);
+    return NextResponse.json({ error: "Failed to fetch article" }, { status: 500 });
   }
 }

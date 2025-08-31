@@ -56,6 +56,7 @@ model User {
   views             View[]
   reports           Report[]            @relation("ReportedBy")
   reported_content  Report[]            @relation("ReportedUser")
+  ai_generations    AiGeneration[]
 
   @@index([clerk_id])
   @@index([email])
@@ -105,6 +106,27 @@ model Article {
   platforms         platform[]     @default([])
   genres            genre[]        @default([])
   
+  // Review specific fields
+  director          String?        // For movie reviews
+  network           String?        // For TV reviews
+  brand             String?        // For tech reviews
+  item_count        Int?           // For top lists
+  duration          String?        // For interviews/videos
+  interviewee       String?        // For interviews
+  interviewer       String?        // For interviews
+  stance            String?        // For opinions (Pro/Against/Neutral)
+  rating_breakdown  Json?          // Detailed rating breakdown
+  
+  // Video/Media specific
+  is_live           Boolean        @default(false)
+  quality           String?        // HD, 4K, etc.
+  
+  // Engagement specific
+  likes             Int            @default(0)
+  dislikes          Int            @default(0)
+  controversial     Boolean        @default(false)
+  trending          Boolean        @default(false)
+  
   // Engagement metrics
   views_count       Int            @default(0)
   likes_count       Int            @default(0)
@@ -118,6 +140,8 @@ model Article {
   show_on_homepage  Boolean        @default(false)
   is_sponsored      Boolean        @default(false)
   is_premium        Boolean        @default(false)
+  is_video          Boolean        @default(false)
+  is_interview      Boolean        @default(false)
   
   // Publishing
   published_at      DateTime?
@@ -143,6 +167,8 @@ model Article {
   views             View[]
   reports           Report[]
   notifications     Notification[]
+  ai_generations    AiGeneration[]
+  seo_analysis      SeoAnalysis[]
 
   @@index([author_id])
   @@index([category_id])
@@ -494,6 +520,42 @@ model Banner {
   @@map("banners")
 }
 
+// Content Types for enhanced sections
+model ContentType {
+  id          String   @id @default(cuid())
+  name        String   @unique // spotlights, top-lists, opinions, videos, interviews
+  display_name String
+  description String?
+  icon        String?
+  color       String?
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([is_active])
+  @@index([sort_order])
+  @@map("content_types")
+}
+
+// Review Categories
+model ReviewCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique // games, movies, tv, comics, tech
+  display_name String
+  description String?
+  icon        String?
+  color       String?
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([is_active])
+  @@index([sort_order])
+  @@map("review_categories")
+}
+
 // Games database
 model Game {
   id           String     @id @default(cuid())
@@ -506,13 +568,13 @@ model Game {
   rating       String?
   metacritic   Int?
   cover_image  String?
-  screenshots  String[]   @default([])
+  screenshots  String?    // JSON string for SQLite
   trailer_url  String?
   website_url  String?
   steam_id     String?
   is_active    Boolean    @default(true)
-  platforms    platform[] @default([])
-  genres       genre[]    @default([])
+  platforms    String?    // JSON string for SQLite
+  genres       String?    // JSON string for SQLite
   created_at   DateTime   @default(now())
   updated_at   DateTime   @updatedAt
 
@@ -566,6 +628,8 @@ enum article_type {
   GAME_REVIEW
   TECH_REVIEW
   COMIC_REVIEW
+  TOP_LIST
+  LATEST_UPDATE
 }
 
 enum reaction_type {
@@ -686,4 +750,103 @@ enum genre {
   CASUAL
   SURVIVAL
   SANDBOX
+}
+
+// AI Generation tracking
+model AiGeneration {
+  id            String    @id @default(cuid())
+  type          ai_type
+  prompt        String
+  response      String?
+  model         String    @default("amazon.nova-micro-v1:0")
+  tokens_used   Int?
+  status        ai_status @default(PENDING)
+  error_message String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  // Relations
+  article_id    String?
+  user_id       String?
+  article       Article?  @relation(fields: [article_id], references: [id])
+  user          User?     @relation(fields: [user_id], references: [id])
+  
+  @@index([type])
+  @@index([status])
+  @@index([created_at])
+  @@index([article_id])
+  @@map("ai_generations")
+}
+
+// SEO Analysis tracking
+model SeoAnalysis {
+  id              String     @id @default(cuid())
+  url             String
+  title           String?
+  meta_description String?
+  keywords        String?    // JSON string for SQLite
+  seo_score       Int        @default(0)
+  issues          String?    // JSON string for SQLite
+  suggestions     String?    // JSON string for SQLite
+  status          seo_status @default(PENDING)
+  analyzed_at     DateTime?
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  
+  // Relations
+  article_id      String?
+  article         Article?   @relation(fields: [article_id], references: [id])
+  
+  @@index([status])
+  @@index([seo_score])
+  @@index([created_at])
+  @@index([article_id])
+  @@map("seo_analysis")
+}
+
+enum ai_type {
+  META_DESCRIPTION
+  SEO_KEYWORDS
+  CONTENT_SUMMARY
+  TITLE_GENERATION
+  ARTICLE_CONTENT
+}
+
+enum ai_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum seo_status {
+  PENDING
+  ANALYZED
+  OPTIMIZED
+  FAILED
+}
+
+// AI Generated Articles Schema
+model AiArticle {
+  id            String   @id @default(cuid())
+  title         String
+  content       String
+  excerpt       String?
+  meta_title    String?
+  meta_description String?
+  keywords      String?  // JSON string for SQLite
+  tags          String?  // JSON string for SQLite
+  web_sources   Int      @default(0)
+  generation_id String?
+  status        ai_article_status @default(GENERATED)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  
+  @@map("ai_articles")
+}
+
+enum ai_article_status {
+  GENERATED
+  PUBLISHED
+  ARCHIVED
 }

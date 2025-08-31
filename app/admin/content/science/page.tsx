@@ -8,7 +8,7 @@ export default function SciencePage() {
     <ContentManagementPage
       title="Science & Comics"
       description="Manage science articles and comic book content"
-      contentType="Science Article"
+      contentType="Science & Comics"
       category="science-comics"
       icon={Atom}
     />

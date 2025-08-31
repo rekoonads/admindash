@@ -8,7 +8,7 @@ export default function AnimePage() {
     <ContentManagementPage
       title="Anime Content"
       description="Manage anime reviews, news, and coverage"
-      contentType="Anime Article"
+      contentType="Anime"
       category="anime"
       icon={Palette}
     />

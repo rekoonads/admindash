@@ -7,6 +7,8 @@ import { BannerComponent } from '@/components/banner-component'
 import { Plus, Edit, Trash2, Eye } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
+import { getBannerImageUrl } from '@/lib/cloudinary'
+
 interface Banner {
   id: string
   title: string
@@ -29,7 +31,7 @@ export default function BannersPage() {
       id: '1',
       title: 'Gaming Sale 2024',
       content: 'Up to 70% off on top gaming titles',
-      imageUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      imageUrl: getBannerImageUrl('gaming-sale-2024'),
       linkUrl: 'https://koodos.in/sale',
       position: 'TOP',
       page: 'home',
@@ -40,7 +42,7 @@ export default function BannersPage() {
       id: '2',
       title: 'New Review Series',
       content: 'Check out our latest game reviews',
-      imageUrl: 'https://res.cloudinary.com/demo/image/upload/sample2.jpg',
+      imageUrl: getBannerImageUrl('new-review-series'),
       linkUrl: 'https://koodos.in/reviews',
       position: 'SIDEBAR',
       page: 'reviews',

@@ -74,9 +74,11 @@ export function ContentManagementPage({
   const fetchPosts = async () => {
     try {
       setRefreshing(true)
+      console.log(`Fetching posts for category: ${category}`);
       const data = await getPosts({ category })
       setPosts(data)
       console.log(`Fetched ${contentType}:`, data.length)
+      console.log('Posts data:', data.map(p => ({ title: p.title, category: p.category?.slug || p.category_id })));
     } catch (error) {
       console.error(`Error fetching ${contentType}:`, error)
     } finally {
@@ -159,7 +161,7 @@ export function ContentManagementPage({
           initialTitle={editingPost?.title}
           initialContent={editingPost?.content}
           initialExcerpt={editingPost?.excerpt || ""}
-          initialCategory={editingPost?.category?.slug || editingPost?.category_id || category}
+          initialCategory={category}
           initialStatus={editingPost?.status as "DRAFT" | "PUBLISHED" | "HIDDEN" | undefined}
           editingPost={editingPost}
           onSave={handleSave}

@@ -8,7 +8,7 @@ export default function NintendoPage() {
     <ContentManagementPage
       title="Nintendo Content"
       description="Manage Nintendo Switch, games, and platform coverage"
-      contentType="Nintendo Article"
+      contentType="Nintendo"
       category="nintendo"
       icon={Gamepad2}
     />

@@ -8,7 +8,7 @@ export default function PlayStationPage() {
     <ContentManagementPage
       title="PlayStation Content"
       description="Manage PS5, PS4, and PlayStation platform coverage"
-      contentType="PlayStation Article"
+      contentType="PlayStation"
       category="playstation"
       icon={Gamepad2}
     />

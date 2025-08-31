@@ -110,6 +110,19 @@ body {
   .mobile-padding {
     @apply px-3 py-2;
   }
+  
+  /* Mobile button fixes */
+  .seo-generator-buttons {
+    @apply flex-col gap-2;
+  }
+  
+  .button-container {
+    @apply flex-col items-stretch gap-2;
+  }
+  
+  .ai-generate-button {
+    @apply w-full justify-center;
+  }
 }
 
 /* Ensure proper touch targets on mobile */
@@ -121,4 +134,52 @@ body {
   input, textarea {
     @apply text-base; /* Prevents zoom on iOS */
   }
+}
+
+/* SEO Generator and AI Button Fixes */
+.seo-generator-buttons {
+  @apply flex flex-wrap gap-2;
+}
+
+.seo-generator-buttons button {
+  @apply flex-shrink-0 whitespace-nowrap;
+}
+
+.ai-generate-button {
+  @apply flex-shrink-0 whitespace-nowrap min-w-fit;
+}
+
+/* Prevent button overflow */
+.button-container {
+  @apply flex flex-wrap gap-2 items-center;
+}
+
+.button-container button {
+  @apply flex-shrink-0;
+}
+
+/* Character counter styling */
+.character-counter {
+  @apply text-xs font-medium;
+}
+
+.character-counter.optimal {
+  @apply text-green-600;
+}
+
+.character-counter.warning {
+  @apply text-yellow-600;
+}
+
+.character-counter.error {
+  @apply text-red-600;
+}
+
+/* Gaming section styling */
+.gaming-section {
+  @apply border-t border-green-200 bg-green-50/30;
+}
+
+.gaming-badge {
+  @apply bg-green-100 text-green-700 border-green-200;
 }
